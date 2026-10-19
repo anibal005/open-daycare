@@ -38,7 +38,13 @@ Commands (npm):
 ## Spec Driven Development - Skills
 
 - /spec Usaremos esta habilidad para crear las especificaciones.
-- /spec-impl Usaremos esta skill para hacer las implementaciones. 
+- /spec-impl Usaremos esta skill para hacer las implementaciones.
+
+### Agente: spec-verifier
+
+- Definición: `.opencode/agents/spec-verifier.md` (modo `all`, solo edita archivos bajo `specs/`).
+- Uso: invocarlo con `@spec-verifier <spec>` (ej.: `@spec-verifier 01-feed-home` o `specs/01-feed-home.md`). Si no se indica spec, lista `specs/*.md` y pregunta cuál verificar.
+
 
 ## Reglas de código
 

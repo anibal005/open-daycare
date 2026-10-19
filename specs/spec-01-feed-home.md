@@ -165,14 +165,14 @@ Props: `{ post: Post }`. Article:
 
 ## Checklist de aceptación
 
-- [ ] `/` renderiza el feed idéntico a `references/pantallas/feed.dc.html` (comparar con captura Playwright en `.playwright-mcp/` vs `references/screenshots/feed.png`).
-- [ ] Fuentes Fredoka/Nunito cargadas con `next/font` (sin `<link>` externo visible en el HTML final).
-- [ ] Cero estilos inline heredados del mockup: todo vía clases Tailwind (los únicos `style` permitidos serían gradiente con comillas problemáticas, preferir clases `bg-gradient-to-*`).
-- [ ] Sidebar sticky con scroll independiente del `main`.
-- [ ] `npm run lint` sin errores.
-- [ ] `npx tsc --noEmit` sin errores.
-- [ ] `npm run build` compila.
-- [ ] Ningún enlace roto: todos los hrefs son `#`.
+- [x] `/` renderiza el feed idéntico a `references/pantallas/feed.dc.html` (comparar con captura Playwright en `.playwright-mcp/` vs `references/screenshots/feed.png`).
+- [x] Fuentes Fredoka/Nunito cargadas con `next/font` (sin `<link>` externo visible en el HTML final).
+- [x] Cero estilos inline heredados del mockup: todo vía clases Tailwind (los únicos `style` permitidos serían gradiente con comillas problemáticas, preferir clases `bg-gradient-to-*`).
+- [x] Sidebar sticky con scroll independiente del `main`.
+- [x] `npm run lint` sin errores.
+- [x] `npx tsc --noEmit` sin errores.
+- [x] `npm run build` compila.
+- [x] Ningún enlace roto: todos los hrefs son `#`.
 
 ## Fuera de alcance (specs futuros)
 
