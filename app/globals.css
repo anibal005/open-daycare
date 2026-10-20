@@ -33,6 +33,11 @@
   --color-kid-hover: #f2a78e;
   --color-line-divider: #e7dac8;
   --color-muted-mid: #8a7c6d;
+
+  /* Auth screens (SPEC-03) */
+  --color-auth-bg: #fbf4ec;
+  --color-input-line: #eadfd0;
+  --color-auth-link: #c5503a;
 }
 
 * {
