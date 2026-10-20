@@ -22,6 +22,17 @@
   /* Fonts (fed by next/font variables on <html>) */
   --font-fredoka: var(--font-fredoka);
   --font-nunito: var(--font-nunito);
+
+  /* Allergy alert banner (SPEC-02) */
+  --color-alert-bg: #fbdad6;
+  --color-alert-icon-bg: #f4a8a0;
+  --color-alert-title: #c5413a;
+  --color-alert-text: #b25249;
+
+  /* Kids list (SPEC-02) */
+  --color-kid-hover: #f2a78e;
+  --color-line-divider: #e7dac8;
+  --color-muted-mid: #8a7c6d;
 }
 
 * {
