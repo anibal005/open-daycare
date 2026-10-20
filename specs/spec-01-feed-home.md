@@ -4,7 +4,7 @@
 | ---------------- | ------------------------------------------------- |
 | **Feature**      | Home = Feed de publicaciones (Sala Soles)         |
 | **Rama**         | `feat/spec-01-feed-home`                          |
-| **Estado**       | `Aprovado`                         |
+| **Estado**       | `Implemeted`                         |
 | **Fuente**       | `references/pantallas/feed.dc.html`               |
 | **Referencia**   | `references/screenshots/feed.png`                 |
 
