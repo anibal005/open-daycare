@@ -1,14 +1,36 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { ROOMS } from "@/lib/rooms";
+import { parseBirthDate, type BirthDateErrorCode } from "@/lib/birth-date";
 
 const FIELD_LABEL_CLASS = "mb-2 block text-[12px] font-extrabold tracking-[.7px] text-muted-dark";
 const INPUT_CLASS =
-  "w-full rounded-[14px] border-[1.5px] border-input-line bg-white px-4 py-[13px] text-[15px] text-ink placeholder:text-[#B6A99B] focus:outline-none";
+  "w-full rounded-[14px] border-[1.5px] bg-white px-4 py-[13px] text-[15px] text-ink placeholder:text-[#B6A99B] focus:outline-none";
+const ERROR_MESSAGE_CLASS = "mb-[18px] text-[13px] font-bold text-error";
+
+const NAME_ERROR_MESSAGE = "Ingresá el nombre completo del niño";
+
+const BIRTH_DATE_ERROR_MESSAGES: Record<BirthDateErrorCode, string> = {
+  empty: "Ingresá la fecha de nacimiento",
+  format: "Usá el formato dd/mm/aaaa",
+  "not-a-real-date": "Esa fecha no existe",
+  "out-of-range": "Ingresá una fecha válida",
+  "in-the-future": "La fecha no puede ser futura",
+};
+
+// The border color is picked instead of layered on top of `border-input-line`:
+// two border-color utilities in the same element would resolve by stylesheet
+// order, not by the order they are written here.
+function fieldClass(hasError: boolean, extra = "") {
+  const borderClass = hasError ? "border-error-line" : "border-input-line";
+  return `${INPUT_CLASS} ${borderClass} ${extra}`;
+}
 
 export default function AddChildModal() {
   const [isOpen, setIsOpen] = useState(false);
+  const [nameError, setNameError] = useState<string | null>(null);
+  const [birthDateError, setBirthDateError] = useState<string | null>(null);
 
   const triggerRef = useRef<HTMLButtonElement>(null);
   const cancelButtonRef = useRef<HTMLButtonElement>(null);
@@ -97,12 +119,69 @@ export default function AddChildModal() {
     }
   }, [isOpen]);
 
+  // The inputs stay uncontrolled, so their values are read on demand from the
+  // DOM instead of from React state.
+  function readName() {
+    return nameInputRef.current?.value ?? "";
+  }
+
+  function readBirthDate() {
+    return birthDateInputRef.current?.value ?? "";
+  }
+
+  function validateName(value: string) {
+    return value.trim() ? null : NAME_ERROR_MESSAGE;
+  }
+
+  function validateBirthDate(value: string) {
+    const parsed = parseBirthDate(value);
+    return parsed.ok ? null : BIRTH_DATE_ERROR_MESSAGES[parsed.code];
+  }
+
+  // Re-validate a field that already failed while the user corrects it, so the
+  // error clears as soon as the value becomes valid.
+  function handleNameChange() {
+    if (!nameError) return;
+    setNameError(validateName(readName()));
+  }
+
+  function handleBirthDateChange() {
+    if (!birthDateError) return;
+    setBirthDateError(validateBirthDate(readBirthDate()));
+  }
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const nextNameError = validateName(readName());
+    const nextBirthDateError = validateBirthDate(readBirthDate());
+
+    setNameError(nextNameError);
+    setBirthDateError(nextBirthDateError);
+
+    if (nextNameError) {
+      nameInputRef.current?.focus({ preventScroll: true });
+      return;
+    }
+
+    if (nextBirthDateError) {
+      birthDateInputRef.current?.focus({ preventScroll: true });
+      return;
+    }
+
+    setIsOpen(false);
+  }
+
   return (
     <>
       <button
         type="button"
         ref={triggerRef}
-        onClick={() => setIsOpen(true)}
+        onClick={() => {
+          setNameError(null);
+          setBirthDateError(null);
+          setIsOpen(true);
+        }}
         className="flex cursor-pointer items-center gap-2 rounded-[14px] bg-gradient-to-b from-[#F4977E] to-[#EE8164] px-[18px] py-[11px] text-[14.5px] font-extrabold text-white shadow-[0_8px_18px_-8px_rgba(238,129,100,.7)]"
       >
         <svg
@@ -158,12 +237,12 @@ export default function AddChildModal() {
               </button>
             </div>
 
+            {/* `noValidate` keeps the browser from showing its own bubbles:
+                the validation and its messages are handled here. */}
             <form
               id="add-child-form"
-              onSubmit={(event) => {
-                event.preventDefault();
-                setIsOpen(false);
-              }}
+              noValidate
+              onSubmit={handleSubmit}
               className="px-[26px] py-[24px]"
             >
               <label htmlFor="child-name" className={FIELD_LABEL_CLASS}>
@@ -173,9 +252,25 @@ export default function AddChildModal() {
                 id="child-name"
                 ref={nameInputRef}
                 type="text"
+                required
                 placeholder="Ej. Martina López"
-                className={`mb-[18px] ${INPUT_CLASS}`}
+                aria-invalid={nameError ? true : undefined}
+                aria-describedby={nameError ? "child-name-error" : undefined}
+                onChange={handleNameChange}
+                className={fieldClass(
+                  Boolean(nameError),
+                  nameError ? "mb-[6px]" : "mb-[18px]",
+                )}
               />
+              {nameError && (
+                <p
+                  id="child-name-error"
+                  role="alert"
+                  className={ERROR_MESSAGE_CLASS}
+                >
+                  {nameError}
+                </p>
+              )}
 
               <div className="flex gap-[14px]">
                 <div className="min-w-0 flex-1">
@@ -186,9 +281,30 @@ export default function AddChildModal() {
                     id="child-birth-date"
                     ref={birthDateInputRef}
                     type="text"
+                    required
+                    inputMode="numeric"
+                    autoComplete="bday"
+                    maxLength={10}
                     placeholder="dd/mm/aaaa"
-                    className={`mb-[18px] min-w-0 ${INPUT_CLASS}`}
+                    aria-invalid={birthDateError ? true : undefined}
+                    aria-describedby={
+                      birthDateError ? "child-birth-date-error" : undefined
+                    }
+                    onChange={handleBirthDateChange}
+                    className={fieldClass(
+                      Boolean(birthDateError),
+                      `min-w-0 ${birthDateError ? "mb-[6px]" : "mb-[18px]"}`,
+                    )}
                   />
+                  {birthDateError && (
+                    <p
+                      id="child-birth-date-error"
+                      role="alert"
+                      className={ERROR_MESSAGE_CLASS}
+                    >
+                      {birthDateError}
+                    </p>
+                  )}
                 </div>
                 <div className="min-w-0 flex-1">
                   <label htmlFor="child-room" className={FIELD_LABEL_CLASS}>
@@ -232,7 +348,7 @@ export default function AddChildModal() {
                 ref={allergiesInputRef}
                 type="text"
                 placeholder="Ej. Maní, Lactosa"
-                className={`mb-[18px] ${INPUT_CLASS}`}
+                className={fieldClass(false, "mb-[18px]")}
               />
 
               <label htmlFor="child-medical-notes" className={FIELD_LABEL_CLASS}>

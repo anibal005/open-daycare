@@ -17,7 +17,7 @@ El modal replica la tarjeta del mockup (ancho máximo 520px, radio 24px, fondo `
 **Alcance SOLO visual (más la mecánica del modal):**
 
 - ❌ NO hay base de datos ni persistencia: "Guardar" cierra el modal y no crea nada.
-- ❌ NO hay validación de formulario ni mensajes de error.
+- ✅ Sí: validación de los campos obligatorios (nombre y fecha de nacimiento) con mensajes de error en español.
 - ❌ NO se modifica `lib/children.ts` ni la lista de niños.
 - ❌ NO se crean rutas nuevas (`/kid/nuevo`, `?nuevo=1`).
 - ✅ Sí: abrir/cerrar el modal, con backdrop, Escape, foco y bloqueo de scroll.
@@ -59,6 +59,32 @@ export interface Room {
 export const ROOMS: Room[]; // Soles, Lunas, Estrellas, Nubes
 ```
 
+#### `lib/birth-date.ts`
+
+Parser del campo "FECHA DE NACIMIENTO" (texto `dd/mm/aaaa`, no `type="date"`).
+
+```ts
+export type BirthDateErrorCode =
+  | "empty"
+  | "format"
+  | "not-a-real-date"
+  | "out-of-range"
+  | "in-the-future";
+
+export type BirthDateParseResult =
+  | { ok: true; iso: string }
+  | { ok: false; code: BirthDateErrorCode };
+
+export function parseBirthDate(input: string): BirthDateParseResult;
+```
+
+- `format`: no matchea `/^(\d{2})\/(\d{2})\/(\d{4})$/`.
+- `not-a-real-date`: día/mes fuera de rango o la fecha no existe en el calendario (31/02, 31/04, 29/02 en año no bisiesto). Se valida con un round-trip sobre `new Date(year, month - 1, day)`.
+- `out-of-range`: año anterior a 1900.
+- `in-the-future`: la fecha es posterior a hoy.
+
+Devuelve un **código**, no un texto: el copy en español vive en el componente.
+
 #### `app/_components/add-child-modal.tsx` (`"use client"`)
 
 Export default `AddChildModal`. Contiene **el botón disparador y el modal** (el estado `isOpen` vive acá, así que el trigger tiene que ser parte del mismo árbol cliente).
@@ -79,9 +105,9 @@ Export default `AddChildModal`. Contiene **el botón disparador y el modal** (el
 
 - "Cancelar" → `<button type="button">` `text-[15px] font-bold text-muted-dark` → cierra.
 - Título "Agregar niño" → `<span id="add-child-title">` `font-fredoka text-[18px] font-semibold text-ink`.
-- "Guardar" → `<button type="submit">` `text-[15px] font-extrabold text-coral-dark` → cierra (sin persistir).
+- "Guardar" → `<button type="submit">` `text-[15px] font-extrabold text-coral-dark` → valida y cierra (sin persistir).
 
-**Body** — `<form>` con `onSubmit` que previene el default y cierra. Contenedor `px-[26px] py-[24px]`.
+**Body** — `<form noValidate>` con `onSubmit` que previene el default, valida y cierra. Contenedor `px-[26px] py-[24px]`. `noValidate` evita los bubbles nativos del navegador: la validación y sus mensajes son propios.
 
 Campos (label `mb-2 block text-[12px] font-extrabold tracking-[.7px] text-muted-dark` con `htmlFor` + `id`):
 
@@ -95,7 +121,17 @@ Campos (label `mb-2 block text-[12px] font-extrabold tracking-[.7px] text-muted-
 
 - La fila "FECHA DE NACIMIENTO" + "SALA" es `flex gap-[14px]` con cada columna `flex-1 min-w-0` (idem al mockup).
 - El `<select>` lleva un chevron SVG 16px, stroke `#B0A290`, `pointer-events-none absolute right-4 top-1/2 -translate-y-1/2`, dentro de un wrapper `relative`.
-- **Inputs no controlados**: sin `value`, sin `onChange`, sin estado → no hay warning de React 19.
+- **Inputs no controlados**: sin `value`, sin estado → no hay warning de React 19. Los valores se leen del DOM (`ref.current.value`) al validar.
+
+**Validación** (estado `nameError` / `birthDateError`):
+
+- "NOMBRE COMPLETO" y "FECHA DE NACIMIENTO" son **obligatorios** (`required` + `noValidate` en el `<form>`).
+- Nombre: se valida `trim()` no vacío → "Ingresá el nombre completo del niño".
+- Fecha: se valida con `parseBirthDate` (ver `lib/birth-date.ts`) → mensajes por código: `empty` → "Ingresá la fecha de nacimiento", `format` → "Usá el formato dd/mm/aaaa", `not-a-real-date` → "Esa fecha no existe", `out-of-range` → "Ingresá una fecha válida", `in-the-future` → "La fecha no puede ser futura".
+- "Guardar" **no** se deshabilita: al enviar con errores, el modal **permanece abierto**, se marca el primer campo inválido con `aria-invalid` + `aria-describedby`, se muestra el mensaje bajo el campo (`<p role="alert">`) y se mueve el foco al campo con error.
+- El error de un campo se recalcula en cada `onChange` de ese campo (solo si ya había fallado), así desaparece solo al corregirlo.
+- Al reabrir el modal, los errores se limpian y los campos vuelven a estar vacíos (el modal se desmonta al cerrarse).
+- El borde del input inválido usa `border-error-line` en lugar de `border-input-line` (se elige la clase, no se apilan: dos utilidades de `border-color` resuelven por orden de la hoja de estilos, no por el orden del class attribute).
 
 **Comportamiento de accesibilidad** (todo en `useEffect` + listeners):
 
@@ -110,6 +146,14 @@ Campos (label `mb-2 block text-[12px] font-extrabold tracking-[.7px] text-muted-
 #### `app/globals.css`
 
 - Agregar `--color-modal-bg: #fbf4ec;` al bloque `@theme` (con comentario `/* Add-child modal (SPEC-04) */`).
+- Agregar los tokens de validación:
+
+```css
+/* Add-child modal form validation */
+--color-error: #c5413a;      /* texto de los mensajes de error */
+--color-error-line: #e8b0a6; /* borde del input inválido */
+```
+
 - Agregar al final la regla de bloqueo de scroll:
 
 ```css
@@ -135,26 +179,34 @@ body.modal-open main {
 5. Cablear `<AddChildModal />` en `app/kid/page.tsx`. Verificación: `/kid` renderiza idéntico salvo que el botón ahora es `<button>`; al clickear se abre el modal.
 6. Verificación visual: copia temporal del mockup en `public/_mockups/`, comparación DOM/estilos 1:1 contra el mockup con Playwright (`getBoundingClientRect` + `getComputedStyle`), capturas en `.playwright-mcp/`.
 7. Verificación final: `npm run lint`, `npx tsc --noEmit` y `npm run build` sin errores.
+8. Validación del formulario: crear `lib/birth-date.ts`, agregar los tokens `--color-error` / `--color-error-line`, y agregar la validación de nombre y fecha en el modal. Verificación: `npx tsc --noEmit` sin errores; prueba manual en `/kid` (submit vacío, `31/02/2023`, `1/1/2022`, `01/01/2030` y una fecha válida).
 
 ## Checklist de aceptación
 
-- [ ] Click en "Agregar niño" en `/kid` abre el modal sobre la página, con overlay `rgba(63,54,46,.45)` y la página `/kid` visible detrás.
-- [ ] La tarjeta del modal coincide 1:1 con el mockup: `max-width 520px`, radio 24px, fondo `#FBF4EC`, borde 1px `#ECE0D0`, sombra `0 20px 50px -24px rgba(63,54,46,.35)`.
-- [ ] Header con "Cancelar" (bold, `#94887B`, 15px), "Agregar niño" (Fredoka 600, 18px, `#3F362E`) y "Guardar" (extrabold, `#D9583C`, 15px), separados por un divider 1px `#ECE0D0`.
-- [ ] Los 5 campos existen con label y placeholder exactos del mockup; el de fecha es input de texto con placeholder `dd/mm/aaaa`; el de notas es `textarea` con `min-height 90px` y `resize: vertical`.
-- [ ] El select SALA ofrece Soles, Lunas, Estrellas y Nubes, con "Soles" seleccionado por defecto.
-- [ ] "Cancelar" cierra el modal.
-- [ ] La tecla Escape cierra el modal.
-- [ ] Click en el fondo (fuera de la tarjeta) cierra el modal.
-- [ ] "Guardar" cierra el modal y **no** agrega ningún niño a la lista ni persiste nada.
-- [ ] Al abrir, el foco queda en el input "Nombre completo"; con Tab el foco no sale de la tarjeta; al cerrar, el foco vuelve al botón "Agregar niño".
-- [ ] Con el modal abierto la página de fondo no scrollea; al cerrar conserva la posición de scroll.
-- [ ] El diálogo tiene `role="dialog"` y `aria-modal="true"`; cada control tiene su `<label for>`.
-- [ ] El select se ve con el chevron del mockup (16px, `#B0A290`) y sin la flecha nativa.
-- [ ] Cero estilos inline: todo vía clases Tailwind; el único token nuevo es `--color-modal-bg`.
-- [ ] `app/kid/page.tsx` sigue siendo server component (sin `"use client"`); el único archivo cliente es `app/_components/add-child-modal.tsx`.
-- [ ] `/kid`, `/kid/[id]`, `/` y `/login` se ven y responden igual que antes del cambio.
-- [ ] `npm run lint`, `npx tsc --noEmit` y `npm run build` sin errores.
+- [x] Click en "Agregar niño" en `/kid` abre el modal sobre la página, con overlay `rgba(63,54,46,.45)` y la página `/kid` visible detrás.
+- [x] La tarjeta del modal coincide 1:1 con el mockup: `max-width 520px`, radio 24px, fondo `#FBF4EC`, borde 1px `#ECE0D0`, sombra `0 20px 50px -24px rgba(63,54,46,.35)`.
+- [x] Header con "Cancelar" (bold, `#94887B`, 15px), "Agregar niño" (Fredoka 600, 18px, `#3F362E`) y "Guardar" (extrabold, `#D9583C`, 15px), separados por un divider 1px `#ECE0D0`.
+- [x] Los 5 campos existen con label y placeholder exactos del mockup; el de fecha es input de texto con placeholder `dd/mm/aaaa`; el de notas es `textarea` con `min-height 90px` y `resize: vertical`.
+- [x] El select SALA ofrece Soles, Lunas, Estrellas y Nubes, con "Soles" seleccionado por defecto.
+- [x] "Cancelar" cierra el modal.
+- [x] La tecla Escape cierra el modal.
+- [x] Click en el fondo (fuera de la tarjeta) cierra el modal.
+- [x] "Guardar" con datos válidos cierra el modal y **no** agrega ningún niño a la lista ni persiste nada.
+- [x] "Guardar" con el nombre vacío (o solo con espacios) deja el modal abierto, muestra "Ingresá el nombre completo del niño" bajo el campo y marca el input con `aria-invalid`.
+- [x] "Guardar" con la fecha vacía deja el modal abierto y muestra "Ingresá la fecha de nacimiento".
+- [x] "Guardar" con una fecha que no existe (31/02, 31/04, 29/02 de un año no bisiesto, 32/01, 01/13) deja el modal abierto y muestra "Esa fecha no existe".
+- [x] "Guardar" con una fecha mal formada (1/1/2022, 2022-03-12, 12/03/22) deja el modal abierto y muestra "Usá el formato dd/mm/aaaa".
+- [x] "Guardar" con una fecha futura deja el modal abierto y muestra "La fecha no puede ser futura".
+- [x] El error de un campo desaparece solo al corregir el valor; el modal no muestra bubbles nativos del navegador.
+- [x] Al reabrir el modal después de un envío fallido, los campos están vacíos y no hay mensajes de error.
+- [x] Al abrir, el foco queda en el input "Nombre completo"; con Tab el foco no sale de la tarjeta; al cerrar, el foco vuelve al botón "Agregar niño".
+- [x] Con el modal abierto la página de fondo no scrollea; al cerrar conserva la posición de scroll.
+- [x] El diálogo tiene `role="dialog"` y `aria-modal="true"`; cada control tiene su `<label for>`.
+- [x] El select se ve con el chevron del mockup (16px, `#B0A290`) y sin la flecha nativa.
+- [x] Cero estilos inline: todo vía clases Tailwind; los tokens nuevos son `--color-modal-bg`, `--color-error` y `--color-error-line`.
+- [x] `app/kid/page.tsx` sigue siendo server component (sin `"use client"`); el único archivo cliente es `app/_components/add-child-modal.tsx`.
+- [x] `/kid`, `/kid/[id]`, `/` y `/login` se ven y responden igual que antes del cambio.
+- [x] `npm run lint`, `npx tsc --noEmit` y `npm run build` sin errores.
 
 ## Decisiones
 
@@ -167,10 +219,12 @@ body.modal-open main {
 - **Sí:** bloqueo de scroll vía clase `modal-open` en `body` + regla `body.modal-open main { overflow: hidden }`. El contenedor scrolleable real de `/kid` es `main`, no `body`; bloquear solo `body` no alcanzaba.
 - **Sí:** `lib/rooms.ts` nuevo con 4 salas de ejemplo. `lib/children.ts` no se toca: `Child.profile.room` sigue siendo string (SPEC-02) y el select usa `ROOMS`.
 - **Sí:** token propio `modal-bg` en vez de reutilizar `auth-bg` (mismo valor, dominio distinto).
+- **Sí:** validación de nombre y fecha con mensajes de error en español. "Guardar" no se deshabilita: el modal permanece abierto, marca el campo inválido y muestra el mensaje debajo, que es más usable que un botón muerto que no explica por qué.
+- **Sí:** el parser de fecha vive en `lib/birth-date.ts` y devuelve un **código** de error, no un texto: el copy en español queda en el componente y el parser queda testeable sin strings de UI.
+- **Sí:** `noValidate` en el `<form>` + `required` en los inputs. Se conserva la semántica nativa (lectores de pantalla anuncian "obligatorio") sin los bubbles del navegador, que son ajenos al diseño.
 - **No:** modal como ruta (`/kid/nuevo`) o query param (`?nuevo=1`). El pedido es un modal, y una ruta rompe el patrón "todo estático" del proyecto.
 - **No:** chips/tags para "ALERGIAS (ETIQUETAS)". El mockup usa un input de texto simple.
 - **No:** `type="date"` para la fecha. El mockup muestra un input de texto con placeholder `dd/mm/aaaa`; el widget nativo del navegador rompería la fidelidad visual.
-- **No:** validación (`required`, mensajes de error, deshabilitar "Guardar").
 - **No:** persistencia ni nuevo niño en la lista.
 - **No:** modal de "Editar niño" reutilizando este componente. Es una pantalla aparte (`editar-nino.dc.html`) → spec aparte.
 
@@ -183,11 +237,12 @@ body.modal-open main {
 | La trampa de foco puede dejar el foco en un elemento oculto | El diálogo tiene un set fijo de 7 focusables visibles; la trampa se calcula sobre ese set, no sobre un query abierto. |
 | React 19: warning de input controlado sin `onChange`        | Los 5 controles son **no controlados** (sin `value`, sin estado).                                                  |
 | Un cliente dentro de un server component rompe el HTML estático | El modal solo se monta cuando `isOpen` es `true`; en el HTML inicial (`isOpen=false`) no hay markup del modal.     |
+| Dos utilidades de `border-color` en el mismo input          | El input inválido **elige** la clase (`border-error-line` vs `border-input-line`); nunca las apila, porque el desempate sería por orden de la hoja de estilos y no del class attribute. |
+| `new Date` normaliza fechas imposibles (31/04 → 01/05)      | `parseBirthDate` valida con round-trip: las partes de la fecha tienen que coincidir con las tipeadas.             |
 
 ## Qué **no** está en este spec
 
 - Persistencia de niños, base de datos o API.
-- Validación de formulario y mensajes de error.
 - Edición de niños (`editar-nino.dc.html`), resumen del día, vincular padre, avisos, mi cuenta.
 - Modal de "Editar" reutilizando este componente.
 - Responsive: el diseño de referencia es desktop (mobile queda para un spec aparte).
