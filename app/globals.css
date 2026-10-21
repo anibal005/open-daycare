@@ -41,6 +41,10 @@
 
   /* Add-child modal (SPEC-04) */
   --color-modal-bg: #fbf4ec;
+
+  /* Add-child modal form validation */
+  --color-error: #c5413a;
+  --color-error-line: #e8b0a6;
 }
 
 * {
