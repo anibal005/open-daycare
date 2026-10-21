@@ -38,6 +38,9 @@
   --color-auth-bg: #fbf4ec;
   --color-input-line: #eadfd0;
   --color-auth-link: #c5503a;
+
+  /* Add-child modal (SPEC-04) */
+  --color-modal-bg: #fbf4ec;
 }
 
 * {
@@ -72,4 +75,11 @@ body {
   border-radius: 8px;
   border: 3px solid transparent;
   background-clip: content-box;
+}
+
+/* SPEC-04: lock the page scroll while the add-child modal is open.
+   The scroll container is the `main` element, not `body`. */
+body.modal-open,
+body.modal-open main {
+  overflow: hidden;
 }
