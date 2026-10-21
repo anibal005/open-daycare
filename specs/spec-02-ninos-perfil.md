@@ -4,7 +4,7 @@
 | -------------- | ----------------------------------------------------- |
 | **Feature**    | Pantallas de gestión de niños: lista y perfil         |
 | **Rama**       | `feat/spec-02-ninos-perfil`                           |
-| **Estado**     | `Approved`                                            |
+| **Estado**     | `Implemented`                                            |
 | **Fuente**     | `references/pantallas/ninos.dc.html`                  |
 |                | `references/pantallas/perfil-nino.dc.html`            |
 | **Referencia** | `references/screenshots/ninos.png`                    |
@@ -182,19 +182,35 @@ Estructura (misma que el resto de la app: `div.flex.min-h-screen.bg-cream` → `
 
 ## Checklist de aceptación
 
-- [ ] `/kid` renderiza idéntico a `references/pantallas/ninos.dc.html` (captura Playwright en `.playwright-mcp/` vs `references/screenshots/ninos.png`).
+- [x] `/kid` renderiza idéntico a `references/pantallas/ninos.dc.html` (captura Playwright en `.playwright-mcp/` vs `references/screenshots/ninos.png`).
 - [ ] `/kid/mateo-fernandez` renderiza idéntico a `references/pantallas/perfil-nino.dc.html` (captura Playwright en `.playwright-mcp/`).
-- [ ] Las 8 rutas `/kid/[id]` renderizan con los datos de `lib/children.ts` y pasan `generateStaticParams` (build los pre-renderiza).
-- [ ] Un `id` inexistente responde 404 (`notFound()`).
-- [ ] Cada tarjeta de la lista navega a `/kid/{id}`; "Volver a Niños" navega a `/kid`.
-- [ ] En `/kid` y `/kid/[id]` el item "Niños" del Sidebar está activo (fondo `coral-soft`, texto `coral-dark`, font 800); en `/` sigue activo "Feed".
-- [ ] El Sidebar con `activeItem` default no rompe `app/page.tsx` (Feed se ve igual que hoy).
-- [ ] El buscador no filtra (input `readOnly`, sin estado de React).
-- [ ] Hrefs en `#`: Editar, Agregar niño, Resumen del día, Vincular otro padre, Avisos, Mi cuenta, Nueva publicación, logout, logo.
-- [ ] Cero estilos inline heredados del mockup: todo vía clases Tailwind; colores nuevos registrados como tokens `@theme`.
-- [ ] `npm run lint` sin errores.
-- [ ] `npx tsc --noEmit` sin errores.
-- [ ] `npm run build` compila.
+  - **Pendiente — diferencias menores.** Comparación 1:1 de DOM/estilos a 1440×900: 56 elementos en ambos, geometría, tipografías, colores de fondo y espaciados idénticos, salvo 3 detalles que provienen de la propia spec (no del código):
+    1. `Volver a Niños`: `gap-[1.5px]` (spec) vs `7px` del mockup.
+    2. Letras de los avatares de padres: el mockup usa `#fff` sobre `#C9B6E8` y `#A9C7E8`; la implementación usa `AVATAR_TONES` (`#7B5FC0` / `#1F7A93` sobre `#C9B6E8` / `#A9D9E8`).
+    3. `Vincular otro padre`: `#C5413A` (`alert-title`) vs `#C5503A` del mockup.
+  - Evidencia: `.playwright-mcp/verify-spec-02-kid-profile.png` vs `.playwright-mcp/verify-spec-02-mockup-profile.png`. Requiere decisión: alinear spec/código al mockup o dar el mockup por desviado.
+- [x] Las 8 rutas `/kid/[id]` renderizan con los datos de `lib/children.ts` y pasan `generateStaticParams` (build los pre-renderiza).
+- [x] Un `id` inexistente responde 404 (`notFound()`).
+- [x] Cada tarjeta de la lista navega a `/kid/{id}`; "Volver a Niños" navega a `/kid`.
+- [x] En `/kid` y `/kid/[id]` el item "Niños" del Sidebar está activo (fondo `coral-soft`, texto `coral-dark`, font 800); en `/` sigue activo "Feed".
+- [x] El Sidebar con `activeItem` default no rompe `app/page.tsx` (Feed se ve igual que hoy).
+- [x] El buscador no filtra (input `readOnly`, sin estado de React).
+- [x] Hrefs en `#`: Editar, Agregar niño, Resumen del día, Vincular otro padre, Avisos, Mi cuenta, Nueva publicación, logout, logo.
+- [x] Cero estilos inline heredados del mockup: todo vía clases Tailwind; colores nuevos registrados como tokens `@theme`.
+- [x] `npm run lint` sin errores.
+- [x] `npx tsc --noEmit` sin errores.
+- [x] `npm run build` compila.
+
+### Evidencia de la verificación
+
+- **Rutas:** las 8 rutas `/kid/{id}` responden 200 con el `h1` correcto y su tarjeta "PADRES VINCULADOS"; `/kid/otro-id` responde **404**.
+- **Navegación:** click en la primera tarjeta → `/kid/mateo-fernandez`; "Volver a Niños" → `/kid`.
+- **Sidebar:** en `/kid` y `/kid/[id]` "Niños" tiene `bg #FBE3D8`, `color #D9583C`, `font-weight 800`; en `/` el activo es "Feed". El sidebar de `/` no cambia respecto de `feed.dc.html` (misma geometría y estilos; solo cambia el orden interno de `path`/`circle` del ícono).
+- **Lista:** comparación 1:1 de DOM/estilos con `ninos.dc.html` → 72 elementos en ambos, **0 diferencias** (texto, geometría, fuentes, colores, radios, padding, gap).
+- **`/kid` capturas:** `.playwright-mcp/verify-spec-02-kid-list.png` vs `.playwright-mcp/verify-spec-02-mockup-list.png`.
+- **Buscador:** `<input readOnly>` con `placeholder="Buscar niño…"`; sin `useState` ni `onChange` en `app/`.
+- **Estilos:** sin `style={...}` en `app/**/*.tsx`; los 7 tokens nuevos (`alert-bg`, `alert-icon-bg`, `alert-title`, `alert-text`, `kid-hover`, `line-divider`, `muted-mid`) están en el `@theme` de `app/globals.css`.
+- **Comandos:** `npm run lint` sin salida de error · `npx tsc --noEmit` exit 0 · `npm run build` OK (14 páginas; `/kid/[id]` pre-renderiza las 8 rutas).
 
 ## Decisiones
 

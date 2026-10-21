@@ -1,3 +1,4 @@
+import AddChildModal from "@/app/_components/add-child-modal";
 import KidCard from "@/app/_components/kid-card";
 import Sidebar from "@/app/_components/sidebar";
 import { children } from "@/lib/children";
@@ -18,24 +19,7 @@ export default function KidsPage() {
                 Niños
               </h1>
             </div>
-            <a
-              href="#"
-              className="flex items-center gap-2 rounded-[14px] bg-gradient-to-b from-[#F4977E] to-[#EE8164] px-[18px] py-[11px] text-[14.5px] font-extrabold text-white shadow-[0_8px_18px_-8px_rgba(238,129,100,.7)]"
-            >
-              <svg
-                width="17"
-                height="17"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="#fff"
-                strokeWidth="2.4"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M12 5v14M5 12h14" />
-              </svg>
-              Agregar niño
-            </a>
+            <AddChildModal />
           </div>
 
           <div className="mb-[22px] flex items-center gap-[11px] rounded-[14px] border border-line bg-card px-4 py-3">
