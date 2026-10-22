@@ -4,8 +4,15 @@ import {
   PARENT_STATUS_LABELS,
   PARENT_STATUS_META,
 } from "@/lib/children";
+import LinkParentModal from "@/app/_components/link-parent-modal";
 
-export default function LinkedParents({ parents }: { parents: Parent[] }) {
+export default function LinkedParents({
+  parents,
+  childName,
+}: {
+  parents: Parent[];
+  childName: string;
+}) {
   return (
     <div className="rounded-[16px] border border-line bg-card p-[16px] px-[18px]">
       <div className="mb-[14px] text-[12.5px] font-extrabold tracking-[.8px] text-muted-mid">
@@ -41,25 +48,7 @@ export default function LinkedParents({ parents }: { parents: Parent[] }) {
           );
         })}
 
-        <a href="#" className="flex items-center gap-3 pt-2">
-          <span className="flex size-10 flex-none items-center justify-center rounded-full border-[1.5px] border-dashed border-[#D8CBBA] text-[#B0A290]">
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M12 5v14M5 12h14" />
-            </svg>
-          </span>
-          <span className="text-[14.5px] font-extrabold text-alert-title">
-            Vincular otro padre
-          </span>
-        </a>
+        <LinkParentModal childName={childName} />
       </div>
     </div>
   );

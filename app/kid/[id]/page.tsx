@@ -133,7 +133,10 @@ export default async function KidProfilePage({
                 Resumen del día
               </a>
 
-              <LinkedParents parents={profile.parents} />
+              <LinkedParents
+                parents={profile.parents}
+                childName={child.name}
+              />
             </div>
           </div>
         </div>
