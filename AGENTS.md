@@ -34,13 +34,19 @@ Commands (npm):
 
 - Playwright: screenshots y cualquier cosa relacionada a Playwright tienen que estar en la carpeta `.playwright-mcp`
 - Context7: usaremos este MCP para traer la documentación actualizada del framework
+- Supabase: tenemos acceso al MCP de Supabase. Ver configuración y guías en `.agents/skills/supabase/`
 
-## Spec Driven Development - Skills
+## Skills instaladas
 
-- /spec Usaremos esta habilidad para crear las especificaciones.
-- /spec-impl Usaremos esta skill para hacer las implementaciones.
+### Spec Driven Development
+- `/spec` - Crear especificaciones
+- `/spec-impl` - Hacer implementaciones
 
-### Agente: spec-verifier
+### Supabase
+- `supabase` - Guía para usar el MCP de Supabase (schemas, migraciones, logs, advisors, configuración de cliente)
+- `supabase-postgres-best-practices` - Mejores prácticas de Postgres para Supabase
+
+## Agente: spec-verifier
 
 - Definición: `.opencode/agents/spec-verifier.md` (modo `all`, solo edita archivos bajo `specs/`).
 - Uso: invocarlo con `@spec-verifier <spec>` (ej.: `@spec-verifier 01-feed-home` o `specs/01-feed-home.md`). Si no se indica spec, lista `specs/*.md` y pregunta cuál verificar.
