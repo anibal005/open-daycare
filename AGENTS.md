@@ -36,6 +36,14 @@ Commands (npm):
 - Context7: usaremos este MCP para traer la documentación actualizada del framework
 - Supabase: tenemos acceso al MCP de Supabase. Ver configuración y guías en `.agents/skills/supabase/`
 
+## Base de datos y migraciones
+
+- **Todo cambio en la base de datos se hace con una migración versionada** mediante `apply_migration` del MCP de Supabase: DDL (tablas, columnas, constraints, índices, políticas RLS, funciones, grants) y también datos (seeds).
+- Nunca se aplica DDL desde el dashboard de Supabase, ni con `execute_sql`, ni con `psql`. `execute_sql` queda reservado para **consultas de verificación de solo lectura**.
+- Cada migración aplicada se versiona en el repo como `supabase/migrations/<version>_<snake_case_name>.sql`, con el SQL exacto y la `version` devuelta por el historial remoto (`supabase_migrations.schema_migrations`).
+- Las migraciones ya aplicadas no se editan: cualquier ajuste o rollback es un archivo nuevo. No se re-ejecutan a mano.
+- El flujo completo, la convención de nombres y las prohibiciones están en `supabase/README.md`.
+
 ## Skills instaladas
 
 ### Spec Driven Development
