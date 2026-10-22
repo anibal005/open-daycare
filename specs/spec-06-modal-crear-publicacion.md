@@ -311,63 +311,63 @@ Estado `recipientsError: string | null` y `descriptionError: string | null`.
 
 Modal y disparadores:
 
-- [ ] En `/`, el botón "Nueva publicación" del sidebar abre el modal sobre la página, con overlay `rgba(63,54,46,.45)` y el feed visible detrás.
-- [ ] En `/kid`, el mismo botón del sidebar abre el mismo modal; no se modifica ninguna página de niños.
-- [ ] En `/`, la barra "Compartí un momento…" abre el mismo modal y no navega.
-- [ ] Ambos disparadores son `<button type="button">` y conservan exactamente el aspecto previo (gradiente, íconos, márgenes `mb-[18px]` y `mb-6`).
-- [ ] La tarjeta coincide 1:1 con el mockup: `max-width 580px`, radio 24px, fondo `#FBF4EC`, borde 1px `#ECE0D0`, sombra `0 20px 50px -24px rgba(63,54,46,.35)`.
-- [ ] Header con "Cancelar" (15px, bold, `#94887B`), "Nueva publicación" (Fredoka 600, 18px, `#3F362E`) y "Publicar" (15px, extrabold, `#D9583C`), separados por un divider 1px `#ECE0D0`.
-- [ ] No hay botón "X" (no está en el mockup).
+- [x] En `/`, el botón "Nueva publicación" del sidebar abre el modal sobre la página, con overlay `rgba(63,54,46,.45)` y el feed visible detrás.
+- [x] En `/kid`, el mismo botón del sidebar abre el mismo modal; no se modifica ninguna página de niños.
+- [x] En `/`, la barra "Compartí un momento…" abre el mismo modal y no navega.
+- [x] Ambos disparadores son `<button type="button">` y conservan exactamente el aspecto previo (gradiente, íconos, márgenes `mb-[18px]` y `mb-6`).
+- [x] La tarjeta coincide 1:1 con el mockup: `max-width 580px`, radio 24px, fondo `#FBF4EC`, borde 1px `#ECE0D0`, sombra `0 20px 50px -24px rgba(63,54,46,.35)`.
+- [x] Header con "Cancelar" (15px, bold, `#94887B`), "Nueva publicación" (Fredoka 600, 18px, `#3F362E`) y "Publicar" (15px, extrabold, `#D9583C`), separados por un divider 1px `#ECE0D0`.
+- [x] No hay botón "X" (no está en el mockup).
 
 PARA:
 
-- [ ] Se muestran 3 chips: Mateo, Sofía y Benjamín, con sus avatares y colores de `lib/children.ts` (26px, letra Fredoka 600 13px).
-- [ ] Se muestra el chip "Toda la sala" sin avatar.
-- [ ] Mateo arranca seleccionado: borde y fondo `#3F362E`, texto blanco.
-- [ ] Los chips inactivos tienen borde `#ECE0D0`, fondo `#FFFDF9` y texto `#6E6359`.
-- [ ] Se pueden marcar varios niños a la vez y cada uno se desmarca con otro click.
-- [ ] Marcar "Toda la sala" desmarca todos los niños; marcar un niño después desmarca "Toda la sala".
-- [ ] Desmarcar todos y presionar "Publicar" deja el modal abierto y muestra "Elegí al menos un destinatario".
-- [ ] Elegir cualquier destinatario hace desaparecer ese error.
+- [x] Se muestran 3 chips: Mateo, Sofía y Benjamín, con sus avatares y colores de `lib/children.ts` (26px, letra Fredoka 600 13px).
+- [x] Se muestra el chip "Toda la sala" sin avatar.
+- [x] Mateo arranca seleccionado: borde y fondo `#3F362E`, texto blanco.
+- [x] Los chips inactivos tienen borde `#ECE0D0`, fondo `#FFFDF9` y texto `#6E6359`.
+- [x] Se pueden marcar varios niños a la vez y cada uno se desmarca con otro click.
+- [x] Marcar "Toda la sala" desmarca todos los niños; marcar un niño después desmarca "Toda la sala".
+- [x] Desmarcar todos y presionar "Publicar" deja el modal abierto y muestra "Elegí al menos un destinatario".
+- [x] Elegir cualquier destinatario hace desaparecer ese error.
 
 TIPO:
 
-- [ ] Se muestran los 7 chips en el orden Comida, Siesta, Actividad, Logro, Ánimo, Foto, Anuncio.
-- [ ] Comida arranca seleccionado con fondo `#9A7B1E` y texto blanco; los otros seis usan su pastel y su acento según la tabla.
-- [ ] Al elegir otro tipo, el anterior vuelve a su pastel y queda exactamente un chip sólido.
-- [ ] Los chips de tipo no tienen borde y miden 8px/16px de padding con texto 13.5px/800.
-- [ ] El grupo se recorre con las flechas del teclado y expone un solo tab stop.
+- [x] Se muestran los 7 chips en el orden Comida, Siesta, Actividad, Logro, Ánimo, Foto, Anuncio.
+- [x] Comida arranca seleccionado con fondo `#9A7B1E` y texto blanco; los otros seis usan su pastel y su acento según la tabla.
+- [x] Al elegir otro tipo, el anterior vuelve a su pastel y queda exactamente un chip sólido.
+- [x] Los chips de tipo no tienen borde y miden 8px/16px de padding con texto 13.5px/800.
+- [x] El grupo se recorre con las flechas del teclado y expone un solo tab stop.
 
 DESCRIPCIÓN y FOTOS:
 
-- [ ] El textarea abre vacío, con placeholder "Contá cómo le fue hoy…", `min-height 120px`, `resize: vertical`, borde `#EADFD0` y radio 14px.
-- [ ] "Publicar" con el textarea vacío o solo espacios deja el modal abierto, muestra "Escribí la descripción de la publicación" y marca el textarea con borde `#E8B0A6` y `aria-invalid`.
-- [ ] El error desaparece al escribir texto.
-- [ ] FOTOS muestra dos tiles de 96×96 con los colores del mockup (imagen `#CBB89F`; "Agregar" dashed `#DBCDBA`, `+` `#C5503A`, texto 12px `#B0A290`).
-- [ ] "Agregar" no abre ningún selector, no responde al click y no recibe foco con Tab.
+- [x] El textarea abre vacío, con placeholder "Contá cómo le fue hoy…", `min-height 120px`, `resize: vertical`, borde `#EADFD0` y radio 14px.
+- [x] "Publicar" con el textarea vacío o solo espacios deja el modal abierto, muestra "Escribí la descripción de la publicación" y marca el textarea con borde `#E8B0A6` y `aria-invalid`.
+- [x] El error desaparece al escribir texto.
+- [x] FOTOS muestra dos tiles de 96×96 con los colores del mockup (imagen `#CBB89F`; "Agregar" dashed `#DBCDBA`, `+` `#C5503A`, texto 12px `#B0A290`).
+- [x] "Agregar" no abre ningún selector, no responde al click y no recibe foco con Tab.
 
 Comportamiento y datos:
 
-- [ ] "Publicar" con destinatario, tipo y descripción válidos cierra el modal.
-- [ ] Después de publicar, el feed sigue mostrando exactamente los mismos 3 posts; no aparece ninguna publicación nueva.
-- [ ] `posts` en `lib/posts.ts` no cambia y no se escribe nada en `localStorage`, `sessionStorage` ni cookies.
-- [ ] "Cancelar", Escape y click en el overlay cierran el modal sin validar ni publicar.
-- [ ] Al reabrir, el formulario vuelve al estado inicial: Mateo seleccionado, Comida seleccionado, descripción vacía y sin errores.
-- [ ] Al abrir, el foco está en el textarea de descripción.
-- [ ] Con el modal abierto, Tab y Shift+Tab no salen de la tarjeta.
-- [ ] Al cerrar, el foco vuelve al disparador que abrió el modal.
-- [ ] Con el modal abierto la página de fondo no scrollea; al cerrar conserva la posición de scroll.
-- [ ] El diálogo tiene `role="dialog"`, `aria-modal="true"` y `aria-labelledby="create-post-title"`; los chips tienen inputs reales asociados a su `<label>`.
+- [x] "Publicar" con destinatario, tipo y descripción válidos cierra el modal.
+- [x] Después de publicar, el feed sigue mostrando exactamente los mismos 3 posts; no aparece ninguna publicación nueva.
+- [x] `posts` en `lib/posts.ts` no cambia y no se escribe nada en `localStorage`, `sessionStorage` ni cookies.
+- [x] "Cancelar", Escape y click en el overlay cierran el modal sin validar ni publicar.
+- [x] Al reabrir, el formulario vuelve al estado inicial: Mateo seleccionado, Comida seleccionado, descripción vacía y sin errores.
+- [x] Al abrir, el foco está en el textarea de descripción.
+- [x] Con el modal abierto, Tab y Shift+Tab no salen de la tarjeta.
+- [x] Al cerrar, el foco vuelve al disparador que abrió el modal.
+- [x] Con el modal abierto la página de fondo no scrollea; al cerrar conserva la posición de scroll.
+- [x] El diálogo tiene `role="dialog"`, `aria-modal="true"` y `aria-labelledby="create-post-title"`; los chips tienen inputs reales asociados a su `<label>`.
 
 Arquitectura y convenciones:
 
-- [ ] `app/_components/create-post-modal.tsx` es el único archivo nuevo con `"use client"`; `sidebar.tsx` y `app/page.tsx` siguen sin directiva de cliente.
-- [ ] Cero estilos inline: todo vía clases Tailwind y los tokens existentes.
-- [ ] `app/globals.css` no cambia: se reutilizan `modal-bg`, `input-line`, `error`, `error-line` y la regla `body.modal-open`.
-- [ ] `PostType` tiene 7 valores y `POST_TYPE_LABELS`, `POST_TYPE_CHIP_LABELS` y `POST_TYPE_STYLES` son `Record<PostType, ...>` completos (el compilador lo exige).
-- [ ] `post-card.tsx` no cambia y sigue renderizando los badges de los 3 posts actuales.
-- [ ] `/`, `/kid`, `/kid/[id]`, `/login` y `/activate-account` se ven y responden igual que antes, salvo los dos disparadores convertidos en botones.
-- [ ] `npm run lint`, `npx tsc --noEmit` y `npm run build` sin errores.
+- [x] `app/_components/create-post-modal.tsx` es el único archivo nuevo con `"use client"`; `sidebar.tsx` y `app/page.tsx` siguen sin directiva de cliente.
+- [x] Cero estilos inline: todo vía clases Tailwind y los tokens existentes.
+- [x] `app/globals.css` no cambia: se reutilizan `modal-bg`, `input-line`, `error`, `error-line` y la regla `body.modal-open`.
+- [x] `PostType` tiene 7 valores y `POST_TYPE_LABELS`, `POST_TYPE_CHIP_LABELS` y `POST_TYPE_STYLES` son `Record<PostType, ...>` completos (el compilador lo exige).
+- [x] `post-card.tsx` no cambia y sigue renderizando los badges de los 3 posts actuales.
+- [x] `/`, `/kid`, `/kid/[id]`, `/login` y `/activate-account` se ven y responden igual que antes, salvo los dos disparadores convertidos en botones.
+- [x] `npm run lint`, `npx tsc --noEmit` y `npm run build` sin errores.
 
 ## Decisiones
 
