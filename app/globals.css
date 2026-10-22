@@ -45,6 +45,17 @@
   /* Add-child modal form validation */
   --color-error: #c5413a;
   --color-error-line: #e8b0a6;
+
+  /* Link-parent modal (SPEC-05) */
+  --color-info-bg: #e3ecfb;
+  --color-info-icon: #4e72c8;
+  --color-info-text: #3f5694;
+  --color-invite-bg: #fbf1d6;
+  --color-invite-line: #e6d08a;
+  --color-invite-label: #a88526;
+  --color-invite-code: #8a7234;
+  --color-chip-bg: #ccd8f4;
+  --color-chip-line: #9fb8ec;
 }
 
 * {

@@ -4,7 +4,7 @@
 | -------------- | --------------------------------------------------------- |
 | **Feature**    | Modal de alta de niño disparado desde `/kid`              |
 | **Rama**       | `feat/spec-04-modal-agregar-nino`                         |
-| **Estado**     | `Approved`                                                   |
+| **Estado**     | `Implemeted`                                                   |
 | **Fuente**     | `references/pantallas/agregar-nino.dc.html`               |
 | **Referencia** | No hay PNG en `references/screenshots/`; la verificación se hace por captura Playwright contra el mockup HTML. |
 
