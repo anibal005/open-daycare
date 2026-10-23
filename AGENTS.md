@@ -43,6 +43,7 @@ Commands (npm):
 - Cada migración aplicada se versiona en el repo como `supabase/migrations/<version>_<snake_case_name>.sql`, con el SQL exacto y la `version` devuelta por el historial remoto (`supabase_migrations.schema_migrations`).
 - Las migraciones ya aplicadas no se editan: cualquier ajuste o rollback es un archivo nuevo. No se re-ejecutan a mano.
 - El flujo completo, la convención de nombres y las prohibiciones están en `supabase/README.md`.
+- **Specs de base de datos**: toda especificación que trate sobre la base de datos (tablas, columnas, constraints, índices, RLS, funciones, migraciones, seeds, relaciones) se crea en `specs/database/`, no en la raíz de `specs/`. Ej.: `specs/database/spec-07-tabla-daycares.md`. Los specs de UI/features van en `specs/`.
 
 ## Skills instaladas
 
@@ -56,8 +57,8 @@ Commands (npm):
 
 ## Agente: spec-verifier
 
-- Definición: `.opencode/agents/spec-verifier.md` (modo `all`, solo edita archivos bajo `specs/`).
-- Uso: invocarlo con `@spec-verifier <spec>` (ej.: `@spec-verifier 01-feed-home` o `specs/01-feed-home.md`). Si no se indica spec, lista `specs/*.md` y pregunta cuál verificar.
+- Definición: `.opencode/agents/spec-verifier.md` (modo `all`, solo edita archivos bajo `specs/`, incluido `specs/database/`).
+- Uso: invocarlo con `@spec-verifier <spec>` (ej.: `@spec-verifier 01-feed-home`, `specs/01-feed-home.md` o `specs/database/spec-07-tabla-daycares.md`). Si no se indica spec, lista `specs/*.md` y `specs/database/*.md` y pregunta cuál verificar.
 
 
 ## Reglas de código
