@@ -45,6 +45,29 @@ Commands (npm):
 - El flujo completo, la convención de nombres y las prohibiciones están en `supabase/README.md`.
 - **Specs de base de datos**: toda especificación que trate sobre la base de datos (tablas, columnas, constraints, índices, RLS, funciones, migraciones, seeds, relaciones) se crea en `specs/database/`, no en la raíz de `specs/`. Ej.: `specs/database/spec-07-tabla-daycares.md`. Los specs de UI/features van en `specs/`.
 
+## Acceso a la base de datos desde la app (Supabase)
+
+La aplicación consume Supabase con los paquetes oficiales para Next.js: **`@supabase/supabase-js`** y **`@supabase/ssr`**. No se consulta la base desde la app con el MCP, `execute_sql`, `psql` ni llamadas `fetch` manuales al endpoint REST; esas vías quedan solo para migraciones/verificación durante el desarrollo.
+
+Helpers (usar siempre estos, no crear clientes sueltos):
+
+- `lib/supabase/client.ts` — `createClient()` con `createBrowserClient` para Client Components.
+- `lib/supabase/server.ts` — `createClient()` asíncrono con `createServerClient` y `cookies()` para Server Components, Server Actions y Route Handlers. Uso: `const supabase = await createClient()`.
+- `lib/supabase/proxy.ts` — `updateSession()`: refresca el token con `supabase.auth.getClaims()` y propaga las cookies renovadas.
+- `proxy.ts` (raíz) — punto de entrada que invoca `updateSession` con el matcher. En **Next.js 16 el middleware se llama `proxy.ts`**; no crear ni renombrar a `middleware.ts`.
+
+Variables de entorno:
+
+- `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` en `.env.local` (ignorado por git). Los placeholders viven en `.env.template`.
+- La publishable key es pública y puede usarse en el navegador. La `service_role` key y el password de la base **nunca** van en código cliente ni se commitean.
+
+Reglas de uso:
+
+- El acceso a datos respeta **RLS**: cada tabla con RLS habilitado necesita sus políticas creadas por migración versionada (ver sección anterior). Si una consulta devuelve `[]` o `permission denied`, revisar políticas antes que el cliente.
+- Con `cacheComponents: true`, el cliente de servidor lee `cookies()`. En páginas y layouts, el componente que lo usa debe ir dentro de `<Suspense>` (o el segmento debe declarar `instant = false` mientras se migra). En Server Actions y Route Handlers no hace falta.
+- Escribir consultas con los nombres reales del schema (`daycares`, `users`, etc.); no inventar tablas de ejemplo (`todos`).
+- Referencia oficial: guía de Supabase para Next.js en `.agents/skills/supabase/` y https://supabase.com/docs/guides/auth/server-side/nextjs
+
 ## Skills instaladas
 
 ### Spec Driven Development
