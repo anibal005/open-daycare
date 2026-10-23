@@ -41,4 +41,8 @@ order by version;
 
 ## Avisos esperados
 
-La tabla `public.daycares` tiene RLS habilitado y ninguna política: el acceso queda denegado para `anon` y `authenticated` hasta que exista la spec de auth/lectura. Por eso `get_advisors("security")` reporta `rls_enabled_no_policy` (`INFO`) para `daycares`; es un aviso informativo esperado, no un bloqueo. El advisor `rls_disabled_in_public` no aparece para esta tabla.
+Las tablas `public.daycares` y `public.users` tienen RLS habilitado y ninguna política: el acceso queda denegado para `anon` y `authenticated` hasta que exista la spec de auth/lectura. Por eso `get_advisors("security")` reporta `rls_enabled_no_policy` (`INFO`) para `daycares` y `users`; es un aviso informativo esperado, no un bloqueo. El advisor `rls_disabled_in_public` no aparece para estas tablas.
+
+## Nota sobre seeds
+
+La migración `seed_staff_user` crea un usuario de prueba en `auth.users` / `auth.identities` y su perfil en `public.users` (rol `staff`) para desarrollo local. No debe replicarse en producción: es un seed de conveniencia para validar el login y las pantallas que dependen de un usuario autenticado.
