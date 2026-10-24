@@ -1,15 +1,43 @@
-import type { Metadata } from "next";
-import Link from "next/link";
-import AuthField from "@/app/_components/auth-field";
+"use client";
 
-export const metadata: Metadata = {
-  title: "Iniciar sesión · OpenDayCare",
-};
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import AuthField from "@/app/_components/auth-field";
+import { createClient } from "@/lib/supabase/client";
 
 const SUN_PATH =
   "M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4";
 
 export default function LoginPage() {
+  const router = useRouter();
+  const supabase = createClient();
+  const [email, setEmail] = useState("caro@opendaycare.com");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    setLoading(false);
+
+    if (error) {
+      setError("Correo o contraseña incorrectos.");
+      return;
+    }
+
+    router.push("/");
+    router.refresh();
+  };
+
   return (
     <div className="grid min-h-screen grid-cols-[1.05fr_1fr] bg-auth-bg">
       <div className="relative flex flex-col justify-between overflow-hidden bg-[linear-gradient(155deg,#F6A98E_0%,#F2937A_45%,#EC7E62_100%)] p-[56px_60px] text-white">
@@ -63,35 +91,44 @@ export default function LoginPage() {
             Ingresá para ver el día de hoy.
           </p>
 
-          <AuthField
-            id="email"
-            label="EMAIL"
-            type="email"
-            defaultValue="caro@opendaycare.com"
-          />
+          <form onSubmit={handleSubmit}>
+            <AuthField
+              id="email"
+              label="EMAIL"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
 
-          <AuthField
-            id="password"
-            label="CONTRASEÑA"
-            type="password"
-            placeholder="••••••••"
-          />
+            <AuthField
+              id="password"
+              label="CONTRASEÑA"
+              type="password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
 
-          <div className="mb-5 text-right">
-            <a
-              href="#"
-              className="text-[13.5px] font-bold text-auth-link"
+            <div className="mb-5 text-right">
+              <a href="#" className="text-[13.5px] font-bold text-auth-link">
+                ¿Olvidaste tu contraseña?
+              </a>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="block w-full rounded-[15px] bg-gradient-to-b from-[#F4977E] to-[#EE8164] p-[15px] text-center text-[16px] font-extrabold text-white shadow-[0_10px_22px_-8px_rgba(238,129,100,.7)] disabled:opacity-70"
             >
-              ¿Olvidaste tu contraseña?
-            </a>
-          </div>
+              {loading ? "Ingresando..." : "Iniciar sesión"}
+            </button>
 
-          <Link
-            href="/"
-            className="block w-full rounded-[15px] bg-gradient-to-b from-[#F4977E] to-[#EE8164] p-[15px] text-center text-[16px] font-extrabold text-white shadow-[0_10px_22px_-8px_rgba(238,129,100,.7)]"
-          >
-            Iniciar sesión
-          </Link>
+            {error && (
+              <p className="mt-3 text-center text-[14px] font-semibold text-[#d64545]">
+                {error}
+              </p>
+            )}
+          </form>
 
           <p className="mt-6 text-center text-[14.5px] text-muted-dark">
             ¿Te invitó la guardería?{" "}

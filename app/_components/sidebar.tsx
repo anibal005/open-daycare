@@ -1,5 +1,10 @@
+"use client";
+
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import CreatePostModal from "@/app/_components/create-post-modal";
+import { createClient } from "@/lib/supabase/client";
 
 const SUN_PATH =
   "M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4";
@@ -35,6 +40,35 @@ export default function Sidebar({
 }: {
   activeItem?: "feed" | "kids";
 }) {
+  const router = useRouter();
+  const supabase = createClient();
+  const [userName, setUserName] = useState("Caro Giménez");
+  const [userRole, setUserRole] = useState("Maestra · Soles");
+  const [initial, setInitial] = useState("C");
+
+  useEffect(() => {
+    const loadUser = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const fullName =
+        (user.user_metadata?.full_name as string) ||
+        (user.user_metadata?.name as string) ||
+        (user.email?.split("@")[0] as string) ||
+        "Usuario";
+      const role =
+        (user.user_metadata?.role as string) ||
+        (user.user_metadata?.cargo as string) ||
+        "Usuario";
+
+      setUserName(fullName);
+      setUserRole(role);
+      setInitial(fullName.trim().charAt(0).toUpperCase() || "U");
+    };
+    loadUser();
+  }, [supabase]);
   return (
     <aside className="sticky top-0 flex h-screen w-[248px] flex-none flex-col border-r border-line bg-card px-4 py-6">
       <Link href="/" className="flex items-center gap-[11px] px-2 pb-[22px] pt-1">
@@ -103,16 +137,20 @@ export default function Sidebar({
       <div className="mt-[10px] border-t border-line pt-[14px]">
         <div className="flex items-center gap-[11px] px-2 py-1.5">
           <div className="font-fredoka flex size-[38px] flex-none items-center justify-center rounded-full bg-coral text-[16px] font-semibold text-white">
-            C
+            {initial}
           </div>
           <div className="min-w-0 flex-1">
-            <div className="text-[14px] font-extrabold text-ink">
-              Caro Giménez
+            <div className="truncate text-[14px] font-extrabold text-ink">
+              {userName}
             </div>
-            <div className="text-[12px] text-muted">Maestra · Soles</div>
+            <div className="truncate text-[12px] text-muted">{userRole}</div>
           </div>
-          <Link
-            href="#"
+          <button
+            onClick={async () => {
+              await supabase.auth.signOut();
+              router.push("/login");
+              router.refresh();
+            }}
             title="Cerrar sesión"
             className="flex size-8 flex-none items-center justify-center rounded-[10px] bg-cream text-[#94887B]"
           >
@@ -128,7 +166,7 @@ export default function Sidebar({
             >
               <path d={LOGOUT_PATH} />
             </svg>
-          </Link>
+          </button>
         </div>
       </div>
     </aside>

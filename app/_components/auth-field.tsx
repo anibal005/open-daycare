@@ -3,6 +3,8 @@ interface AuthFieldProps {
   label: string;
   type?: string;
   defaultValue?: string;
+  value?: string;
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   placeholder?: string;
   inputClassName?: string;
 }
@@ -12,6 +14,8 @@ export default function AuthField({
   label,
   type = "text",
   defaultValue,
+  value,
+  onChange,
   placeholder,
   inputClassName = "",
 }: AuthFieldProps) {
@@ -27,6 +31,8 @@ export default function AuthField({
         id={id}
         type={type}
         defaultValue={defaultValue}
+        value={value}
+        onChange={onChange}
         placeholder={placeholder}
         className={`mb-[18px] w-full rounded-[14px] border-[1.5px] border-input-line bg-white px-4 py-[14px] text-[15px] text-ink placeholder:text-[#B6A99B] focus:outline-none ${inputClassName}`}
       />
