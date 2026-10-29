@@ -54,16 +54,31 @@ _No se introducen nuevas tablas/estructuras de datos. Se reutiliza el modelo de 
 
 ## Criterios de aceptación
 
-- [ ] Solo email + contraseña. Login usa `signInWithPassword`.
-- [ ] Rutas protegidas: todo excepto `(auth)` requiere sesión. `/login` y `/activate-account` son públicas.
-- [ ] No autenticado → accede a ruta protegida → redirige a `/login`.
-- [ ] Autenticado → accede a `/login` o `/activate-account` → redirige a `/`.
-- [ ] Login fallido muestra mensaje de error inline en español debajo del formulario.
-- [ ] Diseño de `/login` se mantiene idéntico al mockup (sin sección "INGRESO COMO").
-- [ ] `/activate-account` queda sin lógica (solo visual).
-- [ ] Protección centralizada en `proxy.ts`/`lib/supabase/proxy.ts`.
-- [ ] Usa helpers existentes de Supabase, respeta RLS implícitamente.
-- [ ] `npm run lint`, `npx tsc --noEmit`, `npm run build` sin errores.
+- [x] Solo email + contraseña. Login usa `signInWithPassword`.
+- [x] Rutas protegidas: todo excepto `(auth)` requiere sesión. `/login` y `/activate-account` son públicas.
+- [x] No autenticado → accede a ruta protegida → redirige a `/login`.
+- [x] Autenticado → accede a `/login` o `/activate-account` → redirige a `/`.
+- [x] Login fallido muestra mensaje de error inline en español debajo del formulario.
+- [x] Diseño de `/login` se mantiene idéntico al mockup (sin sección "INGRESO COMO").
+- [x] `/activate-account` queda sin lógica (solo visual).
+- [x] Protección centralizada en `proxy.ts`/`lib/supabase/proxy.ts`.
+- [x] Usa helpers existentes de Supabase, respeta RLS implícitamente.
+- [x] `npm run lint`, `npx tsc --noEmit`, `npm run build` sin errores.
+
+## Verificación (spec-verifier)
+
+- **Fecha:** 2026-10-24
+- **Comandos ejecutados:**
+  - `npx tsc --noEmit` → sin errores
+  - `npm run lint` → sin errores
+  - `npm run build` → compilado exitosamente (Next.js 16.4.2, Turbopack). Rutas generadas correctamente, proxy configurado.
+- **Revisión de código:**
+  - `app/(auth)/login/page.tsx`: `"use client"`, usa `createClient()` de `lib/supabase/client.ts`, `signInWithPassword`, estado para error/loading, mensaje inline en español "Correo o contraseña incorrectos.", mantiene diseño idéntico al mockup sin sección "INGRESO COMO".
+  - `app/(auth)/activate-account/page.tsx`: componente servidor, sin lógica, solo visual.
+  - `proxy.ts`: delega a `updateSession`, matcher correcto para excluir assets estáticos.
+  - `lib/supabase/proxy.ts`: usa `createServerClient` con patrón `getAll/setAll`, llama `getClaims()` temprano, obtiene `user` con `getUser()`, rutas públicas `/login` y `/activate-account`, redirecciones bidireccionales correctas, propagación de cookies.
+  - Helpers `lib/supabase/client.ts` y `lib/supabase/server.ts` presentes y usados correctamente.
+- **Observaciones:** Implementación completa y conforme a la spec. No se requieren cambios. Todos los criterios de aceptación se cumplen.
 
 ## Decisiones tomadas y descartadas
 

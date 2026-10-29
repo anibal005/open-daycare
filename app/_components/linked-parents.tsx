@@ -9,9 +9,11 @@ import LinkParentModal from "@/app/_components/link-parent-modal";
 export default function LinkedParents({
   parents,
   childName,
+  childId,
 }: {
   parents: Parent[];
   childName: string;
+  childId: string;
 }) {
   return (
     <div className="rounded-[16px] border border-line bg-card p-[16px] px-[18px]">
@@ -21,7 +23,7 @@ export default function LinkedParents({
 
       <div className="flex flex-col gap-[14px]">
         {parents.map((parent) => {
-          const tone = AVATAR_TONES[parent.tone];
+          const tone = AVATAR_TONES[parent.tone] ?? AVATAR_TONES.blue;
           const status = PARENT_STATUS_LABELS[parent.status];
 
           return (
@@ -38,6 +40,11 @@ export default function LinkedParents({
                 <div className="text-[12.5px] text-muted">
                   {parent.roleLabel} · {PARENT_STATUS_META[parent.status]}
                 </div>
+                {parent.invitedBy ? (
+                  <div className="mt-[2px] text-[11.5px] text-muted-dark">
+                    Vinculado por {parent.invitedBy}
+                  </div>
+                ) : null}
               </div>
               <span
                 className={`flex-none rounded-full px-[9px] py-1 text-[10.5px] font-extrabold ${status.bg} ${status.text}`}
@@ -48,7 +55,7 @@ export default function LinkedParents({
           );
         })}
 
-        <LinkParentModal childName={childName} />
+        <LinkParentModal childName={childName} childId={childId} />
       </div>
     </div>
   );

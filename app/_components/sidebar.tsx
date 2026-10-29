@@ -28,9 +28,10 @@ const NAV_ITEMS: {
   label: string;
   iconPath: string;
   href: string;
+  requiresStaff?: boolean;
 }[] = [
   { id: "feed", label: "Feed", iconPath: HOME_PATH, href: "/" },
-  { id: "kids", label: "Niños", iconPath: CHILDREN_PATH, href: "/kid" },
+  { id: "kids", label: "Niños", iconPath: CHILDREN_PATH, href: "/kid", requiresStaff: true },
   { id: "avisos", label: "Avisos", iconPath: BELL_PATH, href: "#" },
   { id: "cuenta", label: "Mi cuenta", iconPath: USER_PATH, href: "#" },
 ];
@@ -45,6 +46,7 @@ export default function Sidebar({
   const [userName, setUserName] = useState("Caro Giménez");
   const [userRole, setUserRole] = useState("Maestra · Soles");
   const [initial, setInitial] = useState("C");
+  const [role, setRole] = useState<string | null>(null);
 
   useEffect(() => {
     const loadUser = async () => {
@@ -58,17 +60,28 @@ export default function Sidebar({
         (user.user_metadata?.name as string) ||
         (user.email?.split("@")[0] as string) ||
         "Usuario";
-      const role =
+      const roleMeta =
         (user.user_metadata?.role as string) ||
         (user.user_metadata?.cargo as string) ||
         "Usuario";
 
       setUserName(fullName);
-      setUserRole(role);
+      setUserRole(roleMeta);
       setInitial(fullName.trim().charAt(0).toUpperCase() || "U");
+
+      const { data: profile } = await supabase
+        .from("users")
+        .select("role")
+        .eq("id", user.id)
+        .single();
+      if (profile?.role) {
+        setRole(profile.role);
+      }
     };
     loadUser();
   }, [supabase]);
+
+  const isStaffOrAdmin = role === "admin" || role === "staff";
   return (
     <aside className="sticky top-0 flex h-screen w-[248px] flex-none flex-col border-r border-line bg-card px-4 py-6">
       <Link href="/" className="flex items-center gap-[11px] px-2 pb-[22px] pt-1">
@@ -98,40 +111,70 @@ export default function Sidebar({
       <CreatePostModal variant="sidebar" />
 
       <nav className="flex flex-1 flex-col gap-1">
-        {NAV_ITEMS.map((item) => (
-          <Link
-            key={item.id}
-            href={item.href}
-            className={
-              item.id === activeItem
-                ? "flex items-center gap-3 rounded-[12px] bg-coral-soft px-3 py-[11px] text-[14.5px] font-extrabold text-coral-dark"
-                : "flex items-center gap-3 rounded-[12px] px-3 py-[11px] text-[14.5px] font-semibold text-[#6E6359]"
-            }
-          >
-            <svg
-              width="19"
-              height="19"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
+        {NAV_ITEMS.map((item) => {
+          if (item.requiresStaff && !isStaffOrAdmin) {
+            return (
+              <div
+                key={item.id}
+                className="flex cursor-not-allowed items-center gap-3 rounded-[12px] px-3 py-[11px] text-[14.5px] font-semibold text-[#B6A99B] opacity-60"
+                title="Solo para personal de la guardería"
+              >
+                <svg
+                  width="19"
+                  height="19"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <>
+                    <circle cx="9" cy="7" r="3" />
+                    <circle cx="17" cy="9" r="2.4" />
+                  </>
+                  <path d={item.iconPath} />
+                </svg>
+                {item.label}
+              </div>
+            );
+          }
+
+          return (
+            <Link
+              key={item.id}
+              href={item.href}
+              className={
+                item.id === activeItem
+                  ? "flex items-center gap-3 rounded-[12px] bg-coral-soft px-3 py-[11px] text-[14.5px] font-extrabold text-coral-dark"
+                  : "flex items-center gap-3 rounded-[12px] px-3 py-[11px] text-[14.5px] font-semibold text-[#6E6359]"
+              }
             >
-              {item.id === "kids" ? (
-                <>
-                  <circle cx="9" cy="7" r="3" />
-                  <circle cx="17" cy="9" r="2.4" />
-                </>
-              ) : null}
-              {item.id === "cuenta" ? (
-                <circle cx="12" cy="7" r="4" />
-              ) : null}
-              <path d={item.iconPath} />
-            </svg>
-            {item.label}
-          </Link>
-        ))}
+              <svg
+                width="19"
+                height="19"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                {item.id === "kids" ? (
+                  <>
+                    <circle cx="9" cy="7" r="3" />
+                    <circle cx="17" cy="9" r="2.4" />
+                  </>
+                ) : null}
+                {item.id === "cuenta" ? (
+                  <circle cx="12" cy="7" r="4" />
+                ) : null}
+                <path d={item.iconPath} />
+              </svg>
+              {item.label}
+            </Link>
+          );
+        })}
       </nav>
 
       <div className="mt-[10px] border-t border-line pt-[14px]">

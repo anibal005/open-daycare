@@ -8,6 +8,7 @@ export interface Parent {
   tone: AvatarTone;
   roleLabel: string; // "Mamá" | "Papá" — display only
   status: ParentStatus;
+  invitedBy?: string | null;
 }
 
 export interface Child {

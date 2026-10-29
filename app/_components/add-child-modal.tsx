@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { ROOMS } from "@/lib/rooms";
+import { useRouter } from "next/navigation";
+import type { Room } from "@/lib/rooms";
 import { parseBirthDate, type BirthDateErrorCode } from "@/lib/birth-date";
+import { createClient } from "@/lib/supabase/client";
 
 const FIELD_LABEL_CLASS = "mb-2 block text-[12px] font-extrabold tracking-[.7px] text-muted-dark";
 const INPUT_CLASS =
@@ -27,10 +29,22 @@ function fieldClass(hasError: boolean, extra = "") {
   return `${INPUT_CLASS} ${borderClass} ${extra}`;
 }
 
-export default function AddChildModal() {
+function convertBirthDateToISO(value: string) {
+  const parsed = parseBirthDate(value);
+  return parsed.ok ? parsed.iso : null;
+}
+
+interface AddChildModalProps {
+  rooms: Room[];
+}
+
+export default function AddChildModal({ rooms }: AddChildModalProps) {
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [nameError, setNameError] = useState<string | null>(null);
   const [birthDateError, setBirthDateError] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const triggerRef = useRef<HTMLButtonElement>(null);
   const cancelButtonRef = useRef<HTMLButtonElement>(null);
@@ -150,7 +164,7 @@ export default function AddChildModal() {
     setBirthDateError(validateBirthDate(readBirthDate()));
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const nextNameError = validateName(readName());
@@ -158,6 +172,7 @@ export default function AddChildModal() {
 
     setNameError(nextNameError);
     setBirthDateError(nextBirthDateError);
+    setSubmitError(null);
 
     if (nextNameError) {
       nameInputRef.current?.focus({ preventScroll: true });
@@ -169,7 +184,56 @@ export default function AddChildModal() {
       return;
     }
 
-    setIsOpen(false);
+    const roomId = roomSelectRef.current?.value;
+    if (!roomId) {
+      setSubmitError("No hay salas disponibles. Contactá al administrador.");
+      return;
+    }
+
+    const birthDateISO = convertBirthDateToISO(readBirthDate());
+    if (!birthDateISO) {
+      setBirthDateError(BIRTH_DATE_ERROR_MESSAGES["format"]);
+      birthDateInputRef.current?.focus({ preventScroll: true });
+      return;
+    }
+
+    const allergiesValue = allergiesInputRef.current?.value ?? "";
+    const allergyTags = allergiesValue
+      .split(",")
+      .map((tag) => tag.trim())
+      .filter((tag) => tag.length > 0);
+
+    const medicalNotes = medicalNotesRef.current?.value ?? "";
+    const today = new Date();
+    const enrolledAt = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+
+    setIsSaving(true);
+
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.from("children").insert({
+        full_name: readName().trim(),
+        birth_date: birthDateISO,
+        room_id: roomId,
+        allergy_tags: allergyTags,
+        medical_notes: medicalNotes || null,
+        photo_consent: true,
+        status: "active",
+        enrolled_at: enrolledAt,
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      setIsOpen(false);
+      router.refresh();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Error al guardar el niño";
+      setSubmitError(message);
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   return (
@@ -215,7 +279,8 @@ export default function AddChildModal() {
                 type="button"
                 ref={cancelButtonRef}
                 onClick={() => setIsOpen(false)}
-                className="cursor-pointer text-[15px] font-bold text-muted-dark"
+                disabled={isSaving}
+                className="cursor-pointer text-[15px] font-bold text-muted-dark disabled:opacity-50"
               >
                 Cancelar
               </button>
@@ -231,9 +296,10 @@ export default function AddChildModal() {
                 type="submit"
                 form="add-child-form"
                 ref={saveButtonRef}
-                className="cursor-pointer text-[15px] font-extrabold text-coral-dark"
+                disabled={isSaving || rooms.length === 0}
+                className="cursor-pointer text-[15px] font-extrabold text-coral-dark disabled:opacity-50"
               >
-                Guardar
+                {isSaving ? "Guardando..." : "Guardar"}
               </button>
             </div>
 
@@ -316,7 +382,10 @@ export default function AddChildModal() {
                       ref={roomSelectRef}
                       className="w-full appearance-none rounded-[14px] border-[1.5px] border-input-line bg-white px-4 py-[13px] pr-[42px] text-[15px] font-bold text-ink focus:outline-none"
                     >
-                      {ROOMS.map((room) => (
+                      {rooms.length === 0 && (
+                        <option value="">Sin salas disponibles</option>
+                      )}
+                      {rooms.map((room) => (
                         <option key={room.id} value={room.id}>
                           {room.name}
                         </option>
@@ -360,6 +429,11 @@ export default function AddChildModal() {
                 placeholder="Indicaciones, medicación, contactos…"
                 className="min-h-[90px] w-full resize-y rounded-[14px] border-[1.5px] border-input-line bg-white px-4 py-[13px] text-[15px] leading-[1.5] text-ink placeholder:text-[#B6A99B] focus:outline-none"
               />
+              {submitError && (
+                <p role="alert" className={ERROR_MESSAGE_CLASS}>
+                  {submitError}
+                </p>
+              )}
             </form>
           </div>
         </div>

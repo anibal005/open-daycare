@@ -1,19 +1,55 @@
 import AllergyAlert from "@/app/_components/allergy-alert";
 import LinkedParents from "@/app/_components/linked-parents";
 import Sidebar from "@/app/_components/sidebar";
-import { AVATAR_TONES, children } from "@/lib/children";
+import { AVATAR_TONES, type AvatarTone } from "@/lib/children";
+import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { connection } from "next/server";
 
 const SUN_PATH =
   "M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4";
 
-// Blocking route: only unlisted ids round-trip to the server (404).
-// The 8 generated paths stay fully prerendered and instant.
 export const instant = false;
 
-export function generateStaticParams() {
-  return children.map((child) => ({ id: child.id }));
+const TONES: AvatarTone[] = ["blue", "pink", "green", "yellow", "purple"];
+
+function getToneForName(name: string): AvatarTone {
+  const index = name.charCodeAt(0) % TONES.length;
+  return TONES[index];
+}
+
+function calculateAgeLabel(birthDate: string) {
+  const birth = new Date(birthDate);
+  const now = new Date();
+  let age = now.getFullYear() - birth.getFullYear();
+  const monthDiff = now.getMonth() - birth.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && now.getDate() < birth.getDate())) {
+    age--;
+  }
+  if (age < 0) age = 0;
+  return age === 1 ? "1 año" : `${age} años`;
+}
+
+function formatDate(date: string) {
+  return new Date(date).toLocaleDateString("es-ES", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+}
+
+function formatMonthYear(date: string) {
+  return new Date(date).toLocaleDateString("es-ES", {
+    month: "short",
+    year: "numeric",
+  });
+}
+
+function mapRelationship(relationship: string) {
+  if (relationship === "mother") return "Mamá";
+  if (relationship === "father") return "Papá";
+  return "Tutor";
 }
 
 export default async function KidProfilePage({
@@ -21,20 +57,85 @@ export default async function KidProfilePage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  await connection();
   const { id } = await params;
-  const child = children.find((child) => child.id === id);
+  const supabase = await createClient();
 
-  if (!child) {
+  const { data: childRow } = await supabase
+    .from("children")
+    .select("*, rooms(name)")
+    .eq("id", id)
+    .eq("status", "active")
+    .single();
+
+  if (!childRow) {
     notFound();
   }
 
-  const tone = AVATAR_TONES[child.tone];
-  const { profile } = child;
+  const { data: parentLinks } = await supabase
+    .from("parent_children")
+    .select("relationship, user_id, users(id, full_name)")
+    .eq("child_id", id);
+
+  const { data: acceptedInvitations } = await supabase
+    .from("invitations")
+    .select("accepted_by_user_id, invited_by")
+    .eq("child_id", id)
+    .eq("status", "accepted");
+
+  const inviterIds = Array.from(
+    new Set(
+      (acceptedInvitations || [])
+        .map((inv: any) => inv.invited_by)
+        .filter(Boolean),
+    ),
+  );
+
+  const { data: inviters } = inviterIds.length
+    ? await supabase.from("users").select("id, full_name").in("id", inviterIds)
+    : { data: [] };
+
+  const inviterMap = new Map(
+    (inviters || []).map((inviter: any) => [inviter.id, inviter.full_name]),
+  );
+
+  const invitationByAcceptedUser = new Map(
+    (acceptedInvitations || []).map((inv: any) => [
+      inv.accepted_by_user_id,
+      inv.invited_by,
+    ]),
+  );
+
+  const childName = childRow.full_name || "";
+  const toneKey = getToneForName(childName);
+  const tone = AVATAR_TONES[toneKey];
+  const avatarLetter = childName.charAt(0)?.toUpperCase() || "?";
+
+  const parents =
+    parentLinks?.map((link: any) => {
+      const user = link.users;
+      const name = user?.full_name || "";
+      const userTone = getToneForName(name);
+      const invitedById = invitationByAcceptedUser.get(link.user_id);
+      const invitedByName = invitedById ? inviterMap.get(invitedById) : null;
+      return {
+        name,
+        avatarLetter: name.charAt(0)?.toUpperCase() || "?",
+        tone: userTone,
+        roleLabel: mapRelationship(link.relationship),
+        status: "active" as const,
+        invitedBy: invitedByName || null,
+      };
+    }) || [];
+
+  const allergyTags = childRow.allergy_tags as string[] | null | undefined;
+  const allergyTag = allergyTags?.[0];
+  const allergyNote = childRow.medical_notes || undefined;
 
   const details = [
-    { label: "Fecha de nacimiento", value: profile.birthDate },
-    { label: "Sala", value: profile.room },
-    { label: "Ingreso", value: profile.admission },
+    { label: "Fecha de nacimiento", value: formatDate(childRow.birth_date) },
+    { label: "Sala", value: childRow.rooms?.name || "" },
+    { label: "Ingreso", value: formatMonthYear(childRow.enrolled_at) },
   ];
 
   return (
@@ -69,14 +170,15 @@ export default async function KidProfilePage({
                 <div
                   className={`font-fredoka flex size-[84px] flex-none items-center justify-center rounded-full text-[34px] font-semibold ${tone.bg} ${tone.text}`}
                 >
-                  {child.avatarLetter}
+                  {avatarLetter}
                 </div>
                 <div className="flex-1">
                   <h1 className="font-fredoka m-0 text-[28px] font-semibold text-ink">
-                    {child.name}
+                    {childName}
                   </h1>
                   <p className="mt-[3px] mb-0 text-[15px] text-muted-dark">
-                    {child.ageLabel} · Sala {profile.room}
+                    {calculateAgeLabel(childRow.birth_date)} · Sala{" "}
+                    {childRow.rooms?.name || ""}
                   </p>
                 </div>
                 <a
@@ -87,9 +189,7 @@ export default async function KidProfilePage({
                 </a>
               </div>
 
-              {profile.allergyNote ? (
-                <AllergyAlert note={profile.allergyNote} />
-              ) : null}
+              {allergyNote ? <AllergyAlert note={allergyNote} /> : null}
 
               <div className="overflow-hidden rounded-[16px] border border-line bg-card">
                 {details.map((detail, index) => (
@@ -133,10 +233,7 @@ export default async function KidProfilePage({
                 Resumen del día
               </a>
 
-              <LinkedParents
-                parents={profile.parents}
-                childName={child.name}
-              />
+              <LinkedParents parents={parents} childName={childName} childId={id} />
             </div>
           </div>
         </div>
