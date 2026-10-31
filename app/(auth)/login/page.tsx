@@ -47,6 +47,8 @@ export default function LoginPage() {
         <div className="relative flex items-center gap-[13px]">
           <div className="flex size-[46px] items-center justify-center rounded-[14px] bg-[rgba(255,255,255,.22)]">
             <svg
+              aria-hidden="true"
+              focusable="false"
               width="26"
               height="26"
               viewBox="0 0 24 24"
@@ -78,11 +80,11 @@ export default function LoginPage() {
         </div>
 
         <div className="relative text-[14px] text-[rgba(255,255,255,.9)]">
-          🌿 Guardería Sala Soles
+          <span aria-hidden="true">🌿</span> Guardería Sala Soles
         </div>
       </div>
 
-      <div className="flex items-center justify-center p-10">
+      <main className="flex items-center justify-center p-10">
         <div className="w-full max-w-[392px]">
           <h2 className="mb-[6px] font-fredoka text-[30px] font-semibold text-ink">
             Iniciar sesión
@@ -94,17 +96,25 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit}>
             <AuthField
               id="email"
+              name="email"
+              autoComplete="email"
               label="EMAIL"
               type="email"
+              ariaInvalid={Boolean(error)}
+              ariaDescribedBy={error ? "login-error" : undefined}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
 
             <AuthField
               id="password"
+              name="password"
+              autoComplete="current-password"
               label="CONTRASEÑA"
               type="password"
               placeholder="••••••••"
+              ariaInvalid={Boolean(error)}
+              ariaDescribedBy={error ? "login-error" : undefined}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
@@ -118,13 +128,18 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
+              aria-busy={loading || undefined}
               className="block w-full rounded-[15px] bg-gradient-to-b from-[#F4977E] to-[#EE8164] p-[15px] text-center text-[16px] font-extrabold text-white shadow-[0_10px_22px_-8px_rgba(238,129,100,.7)] disabled:opacity-70"
             >
               {loading ? "Ingresando..." : "Iniciar sesión"}
             </button>
 
             {error && (
-              <p className="mt-3 text-center text-[14px] font-semibold text-[#d64545]">
+              <p
+                id="login-error"
+                role="alert"
+                className="mt-3 text-center text-[14px] font-semibold text-[#d64545]"
+              >
                 {error}
               </p>
             )}
@@ -140,7 +155,7 @@ export default function LoginPage() {
             </Link>
           </p>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

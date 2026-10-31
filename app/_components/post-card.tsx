@@ -32,6 +32,7 @@ export default function PostCard({ post }: { post: Post }) {
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
+              aria-hidden="true"
             >
               <path d={MEGAPHONE_PATH} />
             </svg>
@@ -84,6 +85,7 @@ export default function PostCard({ post }: { post: Post }) {
             strokeWidth="1.7"
             strokeLinecap="round"
             strokeLinejoin="round"
+            aria-hidden="true"
           >
             <rect {...IMAGE_PATH_RECT} />
             <circle cx="9" cy="9" r="2" />

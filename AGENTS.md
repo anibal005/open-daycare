@@ -83,6 +83,27 @@ Reglas de uso:
 - Definición: `.opencode/agents/spec-verifier.md` (modo `all`, solo edita archivos bajo `specs/`, incluido `specs/database/`).
 - Uso: invocarlo con `@spec-verifier <spec>` (ej.: `@spec-verifier 01-feed-home`, `specs/01-feed-home.md` o `specs/database/spec-07-tabla-daycares.md`). Si no se indica spec, lista `specs/*.md` y `specs/database/*.md` y pregunta cuál verificar.
 
+## Agente: react-best-practices
+
+- Definición: `.opencode/agents/react-best-practices.md` (modo `subagent`, invocable solo con `@react-best-practices`; edita únicamente `app/**`, `lib/**` y `components/**`).
+- Uso: invocarlo con `@react-best-practices <archivos>` (ej.: `@react-best-practices app/_components/post-card.tsx`, `app/actions` o `app/**/*.tsx`). Si no se indican archivos, pregunta cuáles revisar.
+- Valida cada recomendación con Context7 (React y Next.js, una consulta por concepto) y verifica con `npm run lint`, `npx tsc --noEmit` y, si aplica, `npm run build`.
+
+## Agente: accessibility-checker
+
+- Definición: `.opencode/agents/accessibility-checker.md` (modo `subagent`, invocable solo con `@accessibility-checker`; edita únicamente `app/**`, `components/**` y `lib/**`).
+- Uso: invocarlo con `@accessibility-checker <archivos o pantalla>` (ej.: `@accessibility-checker app/_components/add-child-modal.tsx`, `@accessibility-checker app/(auth)/**`, `@accessibility-checker login`). Si no se indican archivos, lista candidatos y pregunta cuáles revisar.
+- Comando equivalente: `/a11y <archivos o pantalla>` (`.opencode/commands/a11y.md`), que selecciona este agente.
+- Alcance: audita WCAG 2.2 AA con checklist por criterio (SC) y severidad; valida en runtime con Playwright MCP (árbol de accesibilidad, teclado, foco, contraste medido, reflow) y con Context7 (una consulta por concepto).
+- Corrige solo lo que no altera el diseño: semántica, labels, `aria-*`, `autocomplete`, foco, teclado, mensajes de estado. **El contraste y cualquier cambio visual respecto a `references/pantallas/*.dc.html` se reportan, no se aplican.**
+- Verificación: `npm run lint`, `npx tsc --noEmit` y, si aplica, `npm run build`. No instala dependencias ni levanta el dev server.
+
+## Agente: db-migrator
+
+- Definición: `.opencode/agents/db-migrator.md` (modo `subagent`, invocable solo con `@db-migrator`; edita únicamente `supabase/migrations/**`).
+- Uso: invocarlo con `@db-migrator verificar` para auditar drift sin aplicar nada, o `@db-migrator specs/database/spec-10-invitaciones-vinculacion-padre-hijo.md` (también `10-invitaciones-vinculacion-padre-hijo` o `10`) para convertir un spec en migraciones nuevas y aplicarlas.
+- Flujo: reconcilia `supabase/migrations/` con `supabase_migrations.schema_migrations`, aplica con `apply_migration` (cada aplicación pide aprobación explícita), guarda el archivo con la `version` devuelta y verifica el esquema con `list_tables`, consultas de solo lectura y `get_advisors`.
+- Prohibido: DDL por `execute_sql`/dashboard/`psql`, editar migraciones aplicadas, migraciones `down`, inventar `version` y tocar archivos fuera de `supabase/migrations/`.
 
 ## Reglas de código
 

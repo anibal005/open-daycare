@@ -115,11 +115,14 @@ El SQL debe incluir:
 
 ## 7. Criterios de aceptación
 
-- [ ] Tabla `invitations` creada con estructura correcta
-- [ ] Constraints e índices aplicados
-- [ ] Trigger `updated_at` funcional
-- [ ] RLS habilitado con políticas para `admin`/`staff`
+- [x] Tabla `invitations` creada con estructura correcta
+- [x] Constraints e índices aplicados
+- [x] Trigger `updated_at` funcional
+- [x] RLS habilitado con políticas para `admin`/`staff`
 - [ ] Índice parcial para evitar múltiples invitaciones `pending` vigentes por `(daycare_id, child_id, email)`
-- [ ] Migración versionada en `supabase/migrations/`
-- [ ] Aplicada vía `apply_migration`
-- [ ] Sin errores en verificación
+  > Existe `idx_invitations_pending_by_child_email`, pero **no es `UNIQUE`**, así que no impide duplicados. La Server Action revoca las `pending` antes de insertar, pero dos envíos concurrentes todavía pueden dejar dos invitaciones `pending`.
+- [x] Migración versionada en `supabase/migrations/`
+- [x] Aplicada vía `apply_migration`
+- [x] Sin errores en verificación
+
+> Verificación del 2026-10-30 contra el proyecto remoto: columnas, `citext` en `email`, unique de `invite_code`, trigger `set_invitations_updated_at` y RLS con las tres políticas `invitations_*_staff_admin` confirmados.

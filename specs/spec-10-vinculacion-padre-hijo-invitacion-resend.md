@@ -19,9 +19,10 @@ El flujo debe:
 
 ## 2. Contexto actual
 
-- **Ficha del niño** (`app/kid/[id]/page.tsx`): muestra `LinkedParents` con los padres ya vinculados (`parent_children` + `users`). Tiene el botón "Vincular otro padre" que renderiza `LinkParentModal`.
-- **Modal vincular padre** (`app/_components/link-parent-modal.tsx`): actualmente genera `inviteCode` con `generateInviteCode()` y al enviar (`onSubmit`) simplemente cierra el modal. **Aún no persiste, ni envía correo.**
-- **Activar cuenta** (`app/(auth)/activate-account/page.tsx`): UI estática con campos para código, email, contraseña. Falta lógica real de validación, consumo de invitación y creación de cuenta.
+- **Ficha del niño** (`app/kid/[id]/page.tsx`): muestra `LinkedParents` con los padres ya vinculados (`parent_children` + `users`). Tiene el botón "Vincular otro padre" que renderiza `LinkParentModal`. **Pendiente:** solo se listan vínculos `active`; las invitaciones `pending` no se consultan ni se muestran.
+- **Modal vincular padre** (`app/_components/link-parent-modal.tsx`): valida nombre/email/parentesco y llama a `inviteParentToChild`; muestra loading y errores, y cierra el modal al recibir `{ ok: true }`. **Pendiente:** no muestra feedback de éxito al cerrar.
+- **Activar cuenta** (`app/(auth)/activate-account/page.tsx` + `activate-account-form.tsx`): lee `code`/`email` de `searchParams`, los prellena y llama a `activateAccountFromInvite`. Código y email se muestran como campos de solo lectura.
+- **Server Actions**: `app/actions/invite-parent.ts` (invitación + Resend) y `app/actions/activate-invite.ts` (validación + alta de cuenta + vínculo). El cliente `service_role` reutilizable vive en `lib/supabase/admin.ts`.
 - **Tipos** (`lib/children.ts`): `ParentStatus = "active" | "pending"`, `PARENT_STATUS_META.pending = "invitación enviada"`.
 - **Clientes Supabase**: `lib/supabase/client.ts`, `lib/supabase/server.ts`, `lib/supabase/proxy.ts` (seguir el patrón existente).
 - **Convención migraciones**: usar `apply_migration` del MCP de Supabase. Crear `supabase/migrations/<version>_<snake_case_name>.sql`. Nunca editar migraciones ya aplicadas. Ver `supabase/README.md`.
@@ -32,7 +33,7 @@ El flujo debe:
 - **Reenvío:** Si ya existe una invitación `pending` no expirada para el mismo `(child_id, email)`, se **genera un nuevo código**, se marca la invitación anterior como `revoked` (o se reemplaza), se crea una nueva invitación `pending` con `expires_at = now() + interval '7 days'` y se reenvía el correo con el nuevo código.
 - **Activación:** Cuenta directa. No se requiere confirmación por email de Supabase Auth. Se crea el usuario y se activa inmediatamente.
 - **Checkbox fotográfico:** No se agrega al modal de vinculación. No se maneja en este flujo.
-- **Códigos:** Únicos, legibles (6-8 caracteres alfanuméricos). Case-insensitive en validación. Expiran a 7 días. Una vez `accepted` o `revoked` no reutilizables.
+- **Códigos:** Únicos, legibles (5 caracteres alfanuméricos, alfabeto sin `I`, `O`, `0` ni `1`, según `lib/invite-code.ts` y `spec-05`). Case-insensitive en validación (el código se normaliza a mayúsculas). Expiran a 7 días. Una vez `accepted` o `revoked` no reutilizables.
 - **Email:** Se envía siempre con el nuevo código generado en cada envío/reenvío.
 
 ## 4. Flujo funcional
@@ -46,7 +47,7 @@ El flujo debe:
 1. **Cliente valida**: nombre (no vacío), email válido, parentesco seleccionado.
 2. **Llamada a Server Action** `inviteParentToChild` (recomendado).
    - Input: `{ childId, fullName, email, relationship }`
-3. **Servidor valida permisos**: usuario autenticado debe tener rol `admin` o `staff` y pertenecer a la guardería del niño (`children.daycare_id`).
+3. **Servidor valida permisos**: usuario autenticado debe tener rol `admin` o `staff` y pertenecer a la guardería del niño (`rooms.daycare_id`; `children` no tiene `daycare_id` directo).
 4. **Obtener contexto**: Verificar niño existe y está activo. Obtener `daycare_id`.
 5. **Generar código único**: Reutilizar/fortalecer `lib/invite-code.ts`. Verificar unicidad en `invitations.invite_code`.
 6. **Manejar invitaciones pendientes**: Buscar invitación `pending` no expirada para `(child_id, email)`. Si existe, marcarla como `revoked` con `revoked_at = now()` y `revoked_by = invited_by`.
@@ -81,7 +82,7 @@ El flujo debe:
    - Validar contraseña
    - Validar invitación nuevamente
    - Crear usuario en Supabase Auth (cuenta directa, sin requerir confirmación por email) usando service role desde server
-   - Crear/actualizar registro en `public.users` con `id = auth.user.id`, `full_name = invitations.full_name`, `email`, `role = 'parent'`, `daycare_id`
+   - Crear/actualizar registro en `public.users` con `id = auth.user.id`, `full_name = invitations.full_name`, `role = 'parent'`, `daycare_id` (la tabla `users` no tiene columna `email`; el correo vive en `auth.users`)
    - Crear vínculo en `parent_children`: `(child_id, user_id, relationship, status: 'active')`. Si ya existe, actualizar a `active`
    - Marcar invitación: `status = 'accepted'`, `accepted_at = now()`, `accepted_by_user_id = user.id`
    - Redirigir a `/login` con mensaje "Cuenta activada. Iniciá sesión."
@@ -119,6 +120,7 @@ Ya configurado en el proyecto. Solo documentar en `.env.template`.
 | `lib/email/templates/invite-parent.ts` | Crear | Template de correo |
 | `app/actions/invite-parent.ts` | Crear | Server Action para enviar invitación |
 | `app/actions/activate-invite.ts` | Crear | Server Action para activar cuenta |
+| `lib/supabase/admin.ts` | Crear | Cliente `service_role` reutilizable para el flujo de activación |
 | `app/_components/link-parent-modal.tsx` | Modificar | Conectar a Server Action, loading, errores |
 | `app/(auth)/activate-account/page.tsx` | Modificar | Leer query params, validar y activar cuenta |
 | `.env.template` | Modificar | Agregar variables de Resend |
@@ -126,28 +128,43 @@ Ya configurado en el proyecto. Solo documentar en `.env.template`.
 ## 7. Criterios de aceptación
 
 ### Desde ficha del niño (`/kid/[id]`)
-- [ ] Solo usuarios con rol `admin` o `staff` pueden enviar invitaciones
-- [ ] Al enviar, se crea/gestiona invitación correctamente
-- [ ] Si hay invitación pendiente, se genera nuevo código, se revoca la anterior y se reenvía
-- [ ] Se envía correo vía Resend
+- [x] Solo usuarios con rol `admin` o `staff` pueden enviar invitaciones
+- [x] Al enviar, se crea/gestiona invitación correctamente
+- [x] Si hay invitación pendiente, se genera nuevo código, se revoca la anterior y se reenvía
+- [x] Se envía correo vía Resend
+  > Verificado en código: `resend.emails.send` recibe remitente, HTML y texto. El envío real depende de `RESEND_API_KEY`/`RESEND_FROM_EMAIL` y no se ejecutó contra Resend en esta verificación.
 - [ ] Modal se cierra con feedback de éxito
+  > El modal se cierra al recibir `{ ok: true }`, pero no muestra ningún mensaje de confirmación ("Invitación enviada a …"). Falta el feedback descrito en §4.1 paso 9.
 - [ ] En `Padres vinculados` aparece el invitado con estado **PENDIENTE** / "invitación enviada"
+  > `app/kid/[id]/page.tsx` arma `parents` solo desde `parent_children` + invitaciones `accepted`; las invitaciones `pending` no se consultan ni se renderizan.
 
 ### Activación (`/activate-account`)
-- [ ] Lee `code` y `email` de query params y prellena campos
-- [ ] Valida invitación: existe, pending, no expirada, email coincide
-- [ ] Crea usuario en Auth directamente (cuenta directa)
-- [ ] Crea registro en `users` con rol `parent`
-- [ ] Crea vínculo `parent_children` activo
-- [ ] Marca invitación como `accepted`
+- [x] Lee `code` y `email` de query params y prellena campos
+- [x] Valida invitación: existe, pending, no expirada, email coincide
+- [x] Crea usuario en Auth directamente (cuenta directa)
+- [x] Crea registro en `users` con rol `parent`
+- [x] Crea vínculo `parent_children` activo
+- [x] Marca invitación como `accepted`
 - [ ] Redirige a `/login` con mensaje de éxito
-- [ ] No permite usar código ya aceptado/revocado/expirado
+  > `activateAccountFromInvite` redirige a `/login?activated=1`, pero `app/(auth)/login/page.tsx` no lee el parámetro ni muestra "Cuenta activada. Iniciá sesión.".
+- [x] No permite usar código ya aceptado/revocado/expirado
 
 ### Técnico
-- [ ] Migración aplicada con `apply_migration` y versionada en repo
-- [ ] RLS configurado correctamente
-- [ ] Variables de entorno documentadas en `.env.template`
-- [ ] `resend` instalado
-- [ ] Sin errores TypeScript (`npx tsc --noEmit`)
-- [ ] Sigue patrones de Supabase helpers existentes
-- [ ] Código en inglés para lógica, UI en español
+- [x] Migración aplicada con `apply_migration` y versionada en repo
+- [x] RLS configurado correctamente
+- [x] Variables de entorno documentadas en `.env.template`
+- [x] `resend` instalado
+- [x] Sin errores TypeScript (`npx tsc --noEmit`)
+- [x] Sigue patrones de Supabase helpers existentes
+- [x] Código en inglés para lógica, UI en español
+
+> Verificación del 2026-10-30: `npm run lint` y `npx tsc --noEmit` sin errores; migraciones `20261028030108_create_invitations_table`, `20261028031511_add_invitations_policies` y `20261028031633_create_parent_children_table` presentes en `supabase_migrations.schema_migrations`.
+
+## 8. Observaciones de la verificación (2026-10-30)
+
+Además de los criterios sin marcar:
+
+- §4.2 paso 3 no se cumple: la pantalla de activación no muestra avatar, nombre ni sala del niño; el encabezado es genérico.
+- §4.2 paso 4: código y email son siempre `readOnly`. Si se abre `/activate-account` sin query params, el usuario no puede ingresarlos manualmente.
+- La validación de la invitación ocurre al enviar el formulario, no al cargar la página (el criterio de aceptación se cumple igual).
+- Persisten dos invitaciones `pending` si dos envíos concurrentes pasan la revocación antes del insert (ver nota del índice parcial en `specs/database/spec-10-invitaciones-vinculacion-padre-hijo.md`).

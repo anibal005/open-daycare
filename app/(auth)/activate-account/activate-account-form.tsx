@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useActionState, useState } from "react";
 import Link from "next/link";
 import { activateAccountFromInvite } from "@/app/actions/activate-invite";
 
@@ -15,23 +15,24 @@ export default function ActivateAccountForm({
   email: string;
 }) {
   const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault();
-    setError(null);
-    if (!password.trim()) {
-      setError("Ingresá una contraseña");
-      return;
+  const [error, submitAction, isPending] = useActionState<
+    string | null,
+    FormData
+  >(async (_previousError, formData) => {
+    const submittedPassword = String(formData.get("password") ?? "");
+    if (!submittedPassword.trim()) {
+      return "Ingresá una contraseña";
     }
-    setIsSubmitting(true);
-    const result = await activateAccountFromInvite({ code, email, password });
+    const result = await activateAccountFromInvite({
+      code,
+      email,
+      password: submittedPassword,
+    });
     if (result?.ok === false) {
-      setError(result.error || "Error al activar la cuenta");
-      setIsSubmitting(false);
+      return result.error || "Error al activar la cuenta";
     }
-  }
+    return null;
+  }, null);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-auth-bg p-10">
@@ -60,12 +61,16 @@ export default function ActivateAccountForm({
           activar la cuenta.
         </p>
 
-        <form onSubmit={handleSubmit}>
+        <form action={submitAction}>
           <div className="mb-4">
-            <label className="mb-2 block text-[12px] font-extrabold tracking-[.7px] text-muted-dark">
+            <label
+              htmlFor="invite-code"
+              className="mb-2 block text-[12px] font-extrabold tracking-[.7px] text-muted-dark"
+            >
               CÓDIGO DE INVITACIÓN
             </label>
             <input
+              id="invite-code"
               value={code}
               readOnly
               className="w-full rounded-[14px] border-[1.5px] border-input-line bg-[#f7f3ee] px-4 py-[13px] text-[18px] font-bold tracking-[3px] text-ink"
@@ -73,10 +78,14 @@ export default function ActivateAccountForm({
           </div>
 
           <div className="mb-4">
-            <label className="mb-2 block text-[12px] font-extrabold tracking-[.7px] text-muted-dark">
+            <label
+              htmlFor="activate-email"
+              className="mb-2 block text-[12px] font-extrabold tracking-[.7px] text-muted-dark"
+            >
               EMAIL
             </label>
             <input
+              id="activate-email"
               type="email"
               value={email}
               readOnly
@@ -85,11 +94,17 @@ export default function ActivateAccountForm({
           </div>
 
           <div className="mb-6">
-            <label className="mb-2 block text-[12px] font-extrabold tracking-[.7px] text-muted-dark">
+            <label
+              htmlFor="activate-password"
+              className="mb-2 block text-[12px] font-extrabold tracking-[.7px] text-muted-dark"
+            >
               CREAR CONTRASEÑA
             </label>
             <input
+              id="activate-password"
               type="password"
+              name="password"
+              autoComplete="new-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full rounded-[14px] border-[1.5px] border-input-line bg-white px-4 py-[13px] text-[15px] text-ink"
@@ -97,15 +112,17 @@ export default function ActivateAccountForm({
           </div>
 
           {error && (
-            <p className="mb-4 text-[13px] font-bold text-error">{error}</p>
+            <p role="alert" className="mb-4 text-[13px] font-bold text-error">
+              {error}
+            </p>
           )}
 
           <button
             type="submit"
-            disabled={isSubmitting}
+            disabled={isPending}
             className="block w-full rounded-[15px] bg-gradient-to-b from-[#F4977E] to-[#EE8164] p-[15px] text-center text-[16px] font-extrabold text-white shadow-[0_10px_22px_-8px_rgba(238,129,100,.7)] disabled:opacity-70"
           >
-            {isSubmitting ? "Activando..." : "Activar mi cuenta"}
+            {isPending ? "Activando..." : "Activar mi cuenta"}
           </button>
         </form>
 

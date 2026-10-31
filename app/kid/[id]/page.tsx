@@ -14,6 +14,33 @@ export const instant = false;
 
 const TONES: AvatarTone[] = ["blue", "pink", "green", "yellow", "purple"];
 
+// Row shapes used by this page. The Supabase helpers in `lib/supabase/*` are
+// not instantiated with the generated `Database` type, so the columns read
+// here are declared locally and applied as annotations to each query.
+interface ChildProfileRow {
+  full_name: string;
+  birth_date: string;
+  enrolled_at: string;
+  medical_notes: string | null;
+  rooms: { name: string } | null;
+}
+
+interface ParentLinkRow {
+  relationship: string;
+  user_id: string;
+  users: { id: string; full_name: string } | null;
+}
+
+interface AcceptedInvitationRow {
+  accepted_by_user_id: string | null;
+  invited_by: string;
+}
+
+interface InviterRow {
+  id: string;
+  full_name: string;
+}
+
 function getToneForName(name: string): AvatarTone {
   const index = name.charCodeAt(0) % TONES.length;
   return TONES[index];
@@ -61,7 +88,9 @@ export default async function KidProfilePage({
   const { id } = await params;
   const supabase = await createClient();
 
-  const { data: childRow } = await supabase
+  // `.single()` keeps the builder's result type on an untyped client, so the
+  // single-row shape is applied to the destructured `data` instead.
+  const { data: childRow }: { data: ChildProfileRow | null } = await supabase
     .from("children")
     .select("*, rooms(name)")
     .eq("id", id)
@@ -75,35 +104,42 @@ export default async function KidProfilePage({
   const { data: parentLinks } = await supabase
     .from("parent_children")
     .select("relationship, user_id, users(id, full_name)")
-    .eq("child_id", id);
+    .eq("child_id", id)
+    .overrideTypes<ParentLinkRow[], { merge: false }>();
 
   const { data: acceptedInvitations } = await supabase
     .from("invitations")
     .select("accepted_by_user_id, invited_by")
     .eq("child_id", id)
-    .eq("status", "accepted");
+    .eq("status", "accepted")
+    .overrideTypes<AcceptedInvitationRow[], { merge: false }>();
 
   const inviterIds = Array.from(
     new Set(
       (acceptedInvitations || [])
-        .map((inv: any) => inv.invited_by)
+        .map((inv) => inv.invited_by)
         .filter(Boolean),
     ),
   );
 
-  const { data: inviters } = inviterIds.length
-    ? await supabase.from("users").select("id, full_name").in("id", inviterIds)
-    : { data: [] };
+  let inviters: InviterRow[] = [];
+  if (inviterIds.length) {
+    const { data: inviterRows } = await supabase
+      .from("users")
+      .select("id, full_name")
+      .in("id", inviterIds)
+      .overrideTypes<InviterRow[], { merge: false }>();
+    inviters = inviterRows ?? [];
+  }
 
   const inviterMap = new Map(
-    (inviters || []).map((inviter: any) => [inviter.id, inviter.full_name]),
+    inviters.map((inviter) => [inviter.id, inviter.full_name] as const),
   );
 
   const invitationByAcceptedUser = new Map(
-    (acceptedInvitations || []).map((inv: any) => [
-      inv.accepted_by_user_id,
-      inv.invited_by,
-    ]),
+    (acceptedInvitations || []).map(
+      (inv) => [inv.accepted_by_user_id, inv.invited_by] as const,
+    ),
   );
 
   const childName = childRow.full_name || "";
@@ -112,7 +148,7 @@ export default async function KidProfilePage({
   const avatarLetter = childName.charAt(0)?.toUpperCase() || "?";
 
   const parents =
-    parentLinks?.map((link: any) => {
+    parentLinks?.map((link) => {
       const user = link.users;
       const name = user?.full_name || "";
       const userTone = getToneForName(name);
@@ -128,8 +164,6 @@ export default async function KidProfilePage({
       };
     }) || [];
 
-  const allergyTags = childRow.allergy_tags as string[] | null | undefined;
-  const allergyTag = allergyTags?.[0];
   const allergyNote = childRow.medical_notes || undefined;
 
   const details = [
