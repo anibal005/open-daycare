@@ -1,6 +1,6 @@
 ---
 description: Verificador de Acceptance criteria de specs. Revisa, corrige y marca los checks de "Acceptance criteria" en specs/*.md y specs/database/*.md, validando con Context7 (docs de Next.js y Postgres/Supabase) y Playwright MCP (comparación visual de pantallas contra los mockups).
-mode: all
+mode: subagent
 model: opencode/glm-5.3-flash
 color: "#22c55e"
 permissions:

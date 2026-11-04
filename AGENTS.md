@@ -105,6 +105,16 @@ Reglas de uso:
 - Flujo: reconcilia `supabase/migrations/` con `supabase_migrations.schema_migrations`, aplica con `apply_migration` (cada aplicación pide aprobación explícita), guarda el archivo con la `version` devuelta y verifica el esquema con `list_tables`, consultas de solo lectura y `get_advisors`.
 - Prohibido: DDL por `execute_sql`/dashboard/`psql`, editar migraciones aplicadas, migraciones `down`, inventar `version` y tocar archivos fuera de `supabase/migrations/`.
 
+## Agente: db-security-auditor
+
+- Definición: `.opencode/agents/db-security-auditor.md` (modo `subagent`, invocable solo con `@db-security-auditor`; **solo lectura**: no edita archivos, no ejecuta DDL ni aplica migraciones).
+- Uso: invocarlo con `@db-security-auditor` para auditar el esquema completo, o acotado: `@db-security-auditor children`, `@db-security-auditor invitations`, `@db-security-auditor rls`, `@db-security-auditor auth`, `@db-security-auditor storage`, `@db-security-auditor specs/database/spec-10-invitaciones-vinculacion-padre-hijo.md`.
+- Comando equivalente: `/db-audit <tabla|área|todo>` (`.opencode/commands/db-audit.md`), que selecciona este agente.
+- Alcance: detecta fugas de datos entre niños, padres y guarderías (RLS, roles, grants, `SECURITY DEFINER`, vistas), configuración insegura de Auth (leaked passwords, `service_role`, códigos de invitación) y Storage (buckets públicos, políticas de `storage.objects`), y valida con Context7 una consulta por concepto.
+- Método: matriz RLS por tabla × comando × rol y pruebas de aislamiento cross-tenant impersonando usuarios con `begin; set local role authenticated; set local request.jwt.claims; …; rollback;` y probes con `returning`. Nunca deja datos de prueba.
+- Reporta con severidad (Crítico / Alto / Medio / Bajo / Info), evidencia reproducible y SQL de remediación propuesto. **No aplica el SQL**: la migración la ejecuta `@db-migrator`.
+- `rls_enabled_no_policy` en `public.daycares` es un aviso esperado (ver `supabase/README.md`); se verifica que el deny sea efectivo, no se reporta como fuga.
+
 ## Reglas de código
 
 - Usar código limpio, nombres, variables funciones, etc. en inglés.
