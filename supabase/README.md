@@ -41,7 +41,17 @@ order by version;
 
 ## Avisos esperados
 
-Las tablas `public.daycares` y `public.users` tienen RLS habilitado y ninguna política: el acceso queda denegado para `anon` y `authenticated` hasta que exista la spec de auth/lectura. Por eso `get_advisors("security")` reporta `rls_enabled_no_policy` (`INFO`) para `daycares` y `users`; es un aviso informativo esperado, no un bloqueo. El advisor `rls_disabled_in_public` no aparece para estas tablas.
+`public.daycares` tiene RLS habilitado y ninguna política: el acceso queda denegado para `anon` y `authenticated` hasta que exista la spec de lectura. Por eso `get_advisors("security")` reporta `rls_enabled_no_policy` (`INFO`) para `daycares`; es un aviso informativo esperado, no un bloqueo. `public.users` ya tiene la política `users_select_self`, así que no aparece en ese aviso.
+
+También son preexistentes y ajenos a las specs de base de datos: `extension_in_public` (`citext`), los avisos sobre `public.rls_auto_enable()` y `auth_leaked_password_protection`.
+
+## Feed de publicaciones y Storage (SPEC-11)
+
+- `public.posts`, `public.post_children`, `public.post_photos`, `public.reactions` y `public.comments` tienen RLS habilitado con políticas para `staff`/`admin` activos del mismo daycare. Por eso no aparecen en `rls_enabled_no_policy`.
+- En esta entrega el feed es **solo para staff**: los padres no tienen políticas de lectura sobre estas tablas. Las políticas del feed de familia llegan en su propia spec.
+- El bucket `post-photos` es **privado** (contiene imágenes de menores), limita cada archivo a 5 MB y acepta solo `image/webp`, `image/jpeg` e `image/png`.
+- Las políticas de `storage.objects` permiten leer, subir y borrar solo a `staff`/`admin` activos del daycare, y solo bajo el prefijo `<daycare_id>/<post_id>/` del propio daycare. La app sube con `upsert: false`; no hay política `UPDATE`.
+- Las fotos se guardan por `storage_path` (no por URL firmada): las signed URLs expiran y el path permite regenerarlas en cada request.
 
 ## Nota sobre seeds
 
