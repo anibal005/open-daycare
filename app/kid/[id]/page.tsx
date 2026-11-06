@@ -1,7 +1,7 @@
 import AllergyAlert from "@/app/_components/allergy-alert";
 import LinkedParents from "@/app/_components/linked-parents";
 import Sidebar from "@/app/_components/sidebar";
-import { AVATAR_TONES, type AvatarTone } from "@/lib/children";
+import { AVATAR_TONES, getAvatarToneForName } from "@/lib/children";
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -11,8 +11,6 @@ const SUN_PATH =
   "M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4";
 
 export const instant = false;
-
-const TONES: AvatarTone[] = ["blue", "pink", "green", "yellow", "purple"];
 
 // Row shapes used by this page. The Supabase helpers in `lib/supabase/*` are
 // not instantiated with the generated `Database` type, so the columns read
@@ -39,11 +37,6 @@ interface AcceptedInvitationRow {
 interface InviterRow {
   id: string;
   full_name: string;
-}
-
-function getToneForName(name: string): AvatarTone {
-  const index = name.charCodeAt(0) % TONES.length;
-  return TONES[index];
 }
 
 function calculateAgeLabel(birthDate: string) {
@@ -143,7 +136,7 @@ export default async function KidProfilePage({
   );
 
   const childName = childRow.full_name || "";
-  const toneKey = getToneForName(childName);
+  const toneKey = getAvatarToneForName(childName);
   const tone = AVATAR_TONES[toneKey];
   const avatarLetter = childName.charAt(0)?.toUpperCase() || "?";
 
@@ -151,7 +144,7 @@ export default async function KidProfilePage({
     parentLinks?.map((link) => {
       const user = link.users;
       const name = user?.full_name || "";
-      const userTone = getToneForName(name);
+      const userTone = getAvatarToneForName(name);
       const invitedById = invitationByAcceptedUser.get(link.user_id);
       const invitedByName = invitedById ? inviterMap.get(invitedById) : null;
       return {
