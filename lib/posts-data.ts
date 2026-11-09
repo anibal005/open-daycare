@@ -7,7 +7,7 @@ const SIGNED_URL_TTL_SECONDS = 3600;
 
 // Row shapes read by the feed. The Supabase helpers in `lib/supabase/*` are not
 // instantiated with the generated `Database` type, so the columns used here are
-// declared locally (same pattern as `app/kid/[id]/page.tsx`).
+// declared locally (same pattern as `app/staff/children/[id]/page.tsx`).
 interface FeedPostRow {
   id: string;
   type: PostType;

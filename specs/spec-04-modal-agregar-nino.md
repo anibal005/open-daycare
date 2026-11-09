@@ -1,8 +1,8 @@
-# SPEC-04 — Modal "Agregar niño" sobre `/kid`
+# SPEC-04 — Modal "Agregar niño" sobre `/staff/children`
 
 | Campo          | Valor                                                     |
 | -------------- | --------------------------------------------------------- |
-| **Feature**    | Modal de alta de niño disparado desde `/kid`              |
+| **Feature**    | Modal de alta de niño disparado desde `/staff/children`              |
 | **Rama**       | `feat/spec-04-modal-agregar-nino`                         |
 | **Estado**     | `Implemeted`                                                   |
 | **Fuente**     | `references/pantallas/agregar-nino.dc.html`               |
@@ -10,7 +10,7 @@
 
 ## Descripción
 
-Convertir `agregar-nino.dc.html` (hoy una pantalla completa) en un **modal** que se abre sobre `/kid` al presionar el botón "Agregar niño".
+Convertir `agregar-nino.dc.html` (hoy una pantalla completa) en un **modal** que se abre sobre `/staff/children` al presionar el botón "Agregar niño".
 
 El modal replica la tarjeta del mockup (ancho máximo 520px, radio 24px, fondo `#FBF4EC`, borde `#ECE0D0`, sombra `0 20px 50px -24px rgba(63,54,46,.35)`) con sus 5 campos: nombre, fecha de nacimiento, sala, alergias y notas médicas.
 
@@ -19,14 +19,14 @@ El modal replica la tarjeta del mockup (ancho máximo 520px, radio 24px, fondo `
 - ❌ NO hay base de datos ni persistencia: "Guardar" cierra el modal y no crea nada.
 - ✅ Sí: validación de los campos obligatorios (nombre y fecha de nacimiento) con mensajes de error en español.
 - ❌ NO se modifica `lib/children.ts` ni la lista de niños.
-- ❌ NO se crean rutas nuevas (`/kid/nuevo`, `?nuevo=1`).
+- ❌ NO se crean rutas nuevas (`/staff/children/nuevo`, `?nuevo=1`).
 - ✅ Sí: abrir/cerrar el modal, con backdrop, Escape, foco y bloqueo de scroll.
 
 ## Reglas globales
 
 Mismas que SPEC-01/02/03: Tailwind v4 100%, tokens `--color-*` en el `@theme` de `app/globals.css`, valores arbitrarios con sintaxis bracket, fuentes Fredoka/Nunito ya cargadas con `next/font` (no se tocan), SVG inline como JSX, UI copy en español tal cual el mockup, **código en inglés**, hrefs a rutas inexistentes como `#`.
 
-**Novedad de esta spec:** es el primer componente cliente del proyecto. El directive `"use client"` va **solo** en `app/_components/add-child-modal.tsx`; `app/kid/page.tsx` sigue siendo server component.
+**Novedad de esta spec:** es el primer componente cliente del proyecto. El directive `"use client"` va **solo** en `app/_components/add-child-modal.tsx`; `app/staff/children/page.tsx` sigue siendo server component.
 
 ## Stack técnico
 
@@ -89,7 +89,7 @@ Devuelve un **código**, no un texto: el copy en español vive en el componente.
 
 Export default `AddChildModal`. Contiene **el botón disparador y el modal** (el estado `isOpen` vive acá, así que el trigger tiene que ser parte del mismo árbol cliente).
 
-**Trigger** — reemplaza el `<a href="#">` actual de `app/kid/page.tsx`, mismas clases y mismo ícono `+`:
+**Trigger** — reemplaza el `<a href="#">` actual de `app/staff/children/page.tsx`, mismas clases y mismo ícono `+`:
 
 - `<button type="button">` con `flex items-center gap-2 rounded-[14px] bg-gradient-to-b from-[#F4977E] to-[#EE8164] px-[18px] py-[11px] text-[14.5px] font-extrabold text-white shadow-[0_8px_18px_-8px_rgba(238,129,100,.7)]`.
 - SVG `+` inline (17px, stroke `#fff`, `strokeWidth 2.4`).
@@ -165,25 +165,25 @@ body.modal-open main {
 }
 ```
 
-#### `app/kid/page.tsx`
+#### `app/staff/children/page.tsx`
 
 - Importar `AddChildModal` de `@/app/_components/add-child-modal`.
 - Reemplazar el `<a href="#">Agregar niño</a>` por `<AddChildModal />`. El resto de la página no cambia.
 
 ## Plan de implementación
 
-1. Agregar `--color-modal-bg` y la regla `body.modal-open` a `app/globals.css`. Verificación: `npm run dev` carga y `/kid` se ve igual.
+1. Agregar `--color-modal-bg` y la regla `body.modal-open` a `app/globals.css`. Verificación: `npm run dev` carga y `/staff/children` se ve igual.
 2. Crear `lib/rooms.ts` con `Room` + `ROOMS` (4 salas). Verificación: `npx tsc --noEmit` sin errores.
 3. Crear `app/_components/add-child-modal.tsx` con trigger + overlay + tarjeta + los 5 campos. Verificación: `npx tsc --noEmit` sin errores.
-4. Agregar la accesibilidad: autofocus, Escape, trampa de foco, retorno del foco y bloqueo de scroll. Verificación: `npx tsc --noEmit` sin errores; prueba manual en `/kid`.
-5. Cablear `<AddChildModal />` en `app/kid/page.tsx`. Verificación: `/kid` renderiza idéntico salvo que el botón ahora es `<button>`; al clickear se abre el modal.
+4. Agregar la accesibilidad: autofocus, Escape, trampa de foco, retorno del foco y bloqueo de scroll. Verificación: `npx tsc --noEmit` sin errores; prueba manual en `/staff/children`.
+5. Cablear `<AddChildModal />` en `app/staff/children/page.tsx`. Verificación: `/staff/children` renderiza idéntico salvo que el botón ahora es `<button>`; al clickear se abre el modal.
 6. Verificación visual: copia temporal del mockup en `public/_mockups/`, comparación DOM/estilos 1:1 contra el mockup con Playwright (`getBoundingClientRect` + `getComputedStyle`), capturas en `.playwright-mcp/`.
 7. Verificación final: `npm run lint`, `npx tsc --noEmit` y `npm run build` sin errores.
-8. Validación del formulario: crear `lib/birth-date.ts`, agregar los tokens `--color-error` / `--color-error-line`, y agregar la validación de nombre y fecha en el modal. Verificación: `npx tsc --noEmit` sin errores; prueba manual en `/kid` (submit vacío, `31/02/2023`, `1/1/2022`, `01/01/2030` y una fecha válida).
+8. Validación del formulario: crear `lib/birth-date.ts`, agregar los tokens `--color-error` / `--color-error-line`, y agregar la validación de nombre y fecha en el modal. Verificación: `npx tsc --noEmit` sin errores; prueba manual en `/staff/children` (submit vacío, `31/02/2023`, `1/1/2022`, `01/01/2030` y una fecha válida).
 
 ## Checklist de aceptación
 
-- [x] Click en "Agregar niño" en `/kid` abre el modal sobre la página, con overlay `rgba(63,54,46,.45)` y la página `/kid` visible detrás.
+- [x] Click en "Agregar niño" en `/staff/children` abre el modal sobre la página, con overlay `rgba(63,54,46,.45)` y la página `/staff/children` visible detrás.
 - [x] La tarjeta del modal coincide 1:1 con el mockup: `max-width 520px`, radio 24px, fondo `#FBF4EC`, borde 1px `#ECE0D0`, sombra `0 20px 50px -24px rgba(63,54,46,.35)`.
 - [x] Header con "Cancelar" (bold, `#94887B`, 15px), "Agregar niño" (Fredoka 600, 18px, `#3F362E`) y "Guardar" (extrabold, `#D9583C`, 15px), separados por un divider 1px `#ECE0D0`.
 - [x] Los 5 campos existen con label y placeholder exactos del mockup; el de fecha es input de texto con placeholder `dd/mm/aaaa`; el de notas es `textarea` con `min-height 90px` y `resize: vertical`.
@@ -204,25 +204,25 @@ body.modal-open main {
 - [x] El diálogo tiene `role="dialog"` y `aria-modal="true"`; cada control tiene su `<label for>`.
 - [x] El select se ve con el chevron del mockup (16px, `#B0A290`) y sin la flecha nativa.
 - [x] Cero estilos inline: todo vía clases Tailwind; los tokens nuevos son `--color-modal-bg`, `--color-error` y `--color-error-line`.
-- [x] `app/kid/page.tsx` sigue siendo server component (sin `"use client"`); el único archivo cliente es `app/_components/add-child-modal.tsx`.
-- [x] `/kid`, `/kid/[id]`, `/` y `/login` se ven y responden igual que antes del cambio.
+- [x] `app/staff/children/page.tsx` sigue siendo server component (sin `"use client"`); el único archivo cliente es `app/_components/add-child-modal.tsx`.
+- [x] `/staff/children`, `/staff/children/[id]`, `/` y `/login` se ven y responden igual que antes del cambio.
 - [x] `npm run lint`, `npx tsc --noEmit` y `npm run build` sin errores.
 
 ## Decisiones
 
-- **Sí:** componente cliente aislado (`add-child-modal.tsx`); `app/kid/page.tsx` sigue siendo server component. Es el primer `"use client"` del proyecto y queda contenido en un solo archivo.
+- **Sí:** componente cliente aislado (`add-child-modal.tsx`); `app/staff/children/page.tsx` sigue siendo server component. Es el primer `"use client"` del proyecto y queda contenido en un solo archivo.
 - **Sí:** el trigger vive dentro del componente cliente. El estado `isOpen` lo necesita; si el botón quedara en la página, la página entera pasaría a ser cliente.
 - **Sí:** `<select>` nativo con `appearance-none` + chevron SVG absoluto. Es un control real (teclado, lectores de pantalla) con la misma pinta que el div del mockup.
 - **Sí:** overlay `rgba(63,54,46,.45)` y tarjeta centrada verticalmente. El `align-items:flex-start` + padding 40px del mockup es layout de página, no de modal; la geometría interna de la tarjeta no cambia.
 - **Sí:** "Guardar" cierra sin persistir. No hay base de datos en el proyecto (SPEC-01 a SPEC-03 son solo visuales).
 - **Sí:** accesibilidad completa (autofocus, Escape, trampa de foco, retorno del foco, bloqueo de scroll).
-- **Sí:** bloqueo de scroll vía clase `modal-open` en `body` + regla `body.modal-open main { overflow: hidden }`. El contenedor scrolleable real de `/kid` es `main`, no `body`; bloquear solo `body` no alcanzaba.
+- **Sí:** bloqueo de scroll vía clase `modal-open` en `body` + regla `body.modal-open main { overflow: hidden }`. El contenedor scrolleable real de `/staff/children` es `main`, no `body`; bloquear solo `body` no alcanzaba.
 - **Sí:** `lib/rooms.ts` nuevo con 4 salas de ejemplo. `lib/children.ts` no se toca: `Child.profile.room` sigue siendo string (SPEC-02) y el select usa `ROOMS`.
 - **Sí:** token propio `modal-bg` en vez de reutilizar `auth-bg` (mismo valor, dominio distinto).
 - **Sí:** validación de nombre y fecha con mensajes de error en español. "Guardar" no se deshabilita: el modal permanece abierto, marca el campo inválido y muestra el mensaje debajo, que es más usable que un botón muerto que no explica por qué.
 - **Sí:** el parser de fecha vive en `lib/birth-date.ts` y devuelve un **código** de error, no un texto: el copy en español queda en el componente y el parser queda testeable sin strings de UI.
 - **Sí:** `noValidate` en el `<form>` + `required` en los inputs. Se conserva la semántica nativa (lectores de pantalla anuncian "obligatorio") sin los bubbles del navegador, que son ajenos al diseño.
-- **No:** modal como ruta (`/kid/nuevo`) o query param (`?nuevo=1`). El pedido es un modal, y una ruta rompe el patrón "todo estático" del proyecto.
+- **No:** modal como ruta (`/staff/children/nuevo`) o query param (`?nuevo=1`). El pedido es un modal, y una ruta rompe el patrón "todo estático" del proyecto.
 - **No:** chips/tags para "ALERGIAS (ETIQUETAS)". El mockup usa un input de texto simple.
 - **No:** `type="date"` para la fecha. El mockup muestra un input de texto con placeholder `dd/mm/aaaa`; el widget nativo del navegador rompería la fidelidad visual.
 - **No:** persistencia ni nuevo niño en la lista.
@@ -232,7 +232,7 @@ body.modal-open main {
 
 | Riesgo                                                     | Mitigación                                                                                                        |
 | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| Bloquear solo `body` no frena el scroll de `/kid`          | La regla incluye `body.modal-open main { overflow: hidden }`; el contenedor scrolleable es `main`.                  |
+| Bloquear solo `body` no frena el scroll de `/staff/children`          | La regla incluye `body.modal-open main { overflow: hidden }`; el contenedor scrolleable es `main`.                  |
 | `appearance-none` en el `<select>` puede dejar el popup nativo raro en Safari | Chevron propio con `pointer-events-none` + `pr-[42px]` para el padding. Se verifica en el screenshot 1:1. |
 | La trampa de foco puede dejar el foco en un elemento oculto | El diálogo tiene un set fijo de 7 focusables visibles; la trampa se calcula sobre ese set, no sobre un query abierto. |
 | React 19: warning de input controlado sin `onChange`        | Los 5 controles son **no controlados** (sin `value`, sin estado).                                                  |

@@ -5,12 +5,14 @@
 > **Fecha:** 2026-10-23  
 > **Objetivo:** Implementar autenticación real con email y contraseña mediante Supabase Auth y proteger las rutas de la app usando el proxy/middleware existente, redirigiendo según el estado de sesión.
 
+> **Actualización (change `split-staff-family-panels`):** `/` es ahora un resolver de rol: `staff`/`admin` → `/staff`, `parent` → `/family`, sesión sin perfil activo → `/access-denied`. Los layouts `app/staff/layout.tsx` y `app/family/layout.tsx` agregan guards por rol (además del proxy) y RLS sigue siendo la barrera final. `proxy.ts` conserva la protección de sesión y los redirects de auth a `/`.
+
 ## Alcance
 
 **Dentro:**
 - Login real con `supabase.auth.signInWithPassword` en `/login` (solo email + contraseña).
 - Protección de rutas en el `proxy`/`updateSession`: solo `(auth)` (`/login`, `/activate-account`) son públicas; el resto requiere sesión.
-- Redirecciones: si no hay sesión y se intenta acceder a ruta protegida → `/login`. Si hay sesión y se intenta acceder a `/login` o `/activate-account` → `/`.
+- Redirecciones: si no hay sesión y se intenta acceder a ruta protegida → `/login`. Si hay sesión y se intenta acceder a `/login` o `/activate-account` → `/` (que resuelve `/staff` o `/family` según el rol).
 - Errores de login mostrados inline en español debajo del formulario.
 - Uso de los helpers existentes de Supabase (`lib/supabase/client.ts`, `lib/supabase/server.ts`, `lib/supabase/proxy.ts`, `proxy.ts`).
 
@@ -19,8 +21,8 @@
 - Recuperación de contraseña.
 - Registro/sign up.
 - OAuth/social login.
-- Roles/permisos granulares más allá de "autenticado/no autenticado".
-- Protección en layouts/páginas individual (solo proxy).
+- Roles/permisos granulares más allá de la separación staff/family (ver actualización).
+- Protección en layouts/páginas individual: agregada por el change posterior (`app/staff/layout.tsx` y `app/family/layout.tsx`).
 
 ## Modelo de datos
 

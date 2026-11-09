@@ -131,7 +131,7 @@ Server component. Estructura: `flex min-h-screen items-center justify-center bg-
 - **Checkbox:** 1 checkbox en `/activate-account`, `checked=true`.
 - **Capturas:** `.playwright-mcp/verify-spec-03-login-impl.png`, `verify-spec-03-login-mock.png`, `verify-spec-03-activate-impl.png`, `verify-spec-03-activate-mock.png`.
 - **Comandos:** `npx tsc --noEmit` exit 0 · `npm run lint` sin salida de error · `npm run build` OK (16 páginas; `/login` y `/activate-account` prerenderizadas).
-- **Route group:** tras mover las páginas a `app/(auth)/`, `/login`, `/activate-account`, `/` y `/kid` siguen respondiendo 200; el build reporta las mismas rutas. Los errores de `tsc` en `.next/types/validator.ts` eran tipos generados con las rutas viejas: se resolvieron borrando `.next` (requiere parar el dev server, que bloquea la carpeta).
+- **Route group:** tras mover las páginas a `app/(auth)/`, `/login`, `/activate-account`, `/` y `/staff/children` siguen respondiendo 200; el build reporta las mismas rutas. Los errores de `tsc` en `.next/types/validator.ts` eran tipos generados con las rutas viejas: se resolvieron borrando `.next` (requiere parar el dev server, que bloquea la carpeta).
 
 ### Notas de implementación
 
@@ -143,7 +143,7 @@ Server component. Estructura: `flex min-h-screen items-center justify-center bg-
 
 ## Decisiones
 
-- **Sí:** rutas `/login` y `/activate-account` (elegidas por el usuario). Regla de código en inglés, como `/kid` en SPEC-02.
+- **Sí:** rutas `/login` y `/activate-account` (elegidas por el usuario). Regla de código en inglés, como `/staff/children` en SPEC-02.
 - **Sí:** ambas páginas bajo el route group `app/(auth)/`. Agrupa las rutas de acceso, no cambia la URL y deja espacio para un `layout.tsx` compartido futuro. El import de `AuthField` usa el alias absoluto `@/app/_components/auth-field`, así que el movimiento no rompió nada.
 - **Sí:** eliminar la sección "INGRESO COMO" completa (decisión del usuario: no usamos el selector Personal/Familia).
 - **Sí:** mantener el email prellenado `caro@opendaycare.com` (el mockup nunca muestra inputs vacíos).

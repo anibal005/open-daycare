@@ -41,7 +41,7 @@ const GENERIC_ERROR = "No se pudo publicar. Intentá nuevamente.";
 
 // Row shape read by this action. The Supabase helpers in `lib/supabase/*` are
 // not instantiated with the generated `Database` type, so the columns used here
-// are declared locally (same pattern as `app/kid/[id]/page.tsx`).
+// are declared locally (same pattern as `app/staff/children/[id]/page.tsx`).
 interface ProfileRow {
   id: string;
   daycare_id: string;
@@ -172,7 +172,8 @@ export async function createPost(
     return { ok: false, error: mapRpcError(error.code) };
   }
 
-  revalidatePath("/");
+  revalidatePath("/staff");
+  revalidatePath("/family");
 
   return {
     ok: true,

@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import AuthField from "@/app/_components/auth-field";
 import { createClient } from "@/lib/supabase/client";
@@ -10,7 +9,6 @@ const SUN_PATH =
   "M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4";
 
 export default function LoginPage() {
-  const router = useRouter();
   const supabase = createClient();
   const [email, setEmail] = useState("caro@opendaycare.com");
   const [password, setPassword] = useState("");
@@ -34,8 +32,9 @@ export default function LoginPage() {
       return;
     }
 
-    router.push("/");
-    router.refresh();
+    // Full navigation clears the client router cache so `/` resolves the new
+    // role with a clean request instead of reusing another user's shell.
+    window.location.assign("/");
   };
 
   return (

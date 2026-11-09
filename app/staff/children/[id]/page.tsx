@@ -1,6 +1,5 @@
 import AllergyAlert from "@/app/_components/allergy-alert";
 import LinkedParents from "@/app/_components/linked-parents";
-import Sidebar from "@/app/_components/sidebar";
 import { AVATAR_TONES, getAvatarToneForName } from "@/lib/children";
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
@@ -166,15 +165,11 @@ export default async function KidProfilePage({
   ];
 
   return (
-    <div className="flex min-h-screen bg-cream">
-      <Sidebar activeItem="kids" />
-
-      <main className="h-screen flex-1 min-w-0 overflow-y-auto">
-        <div className="mx-auto w-full max-w-[820px] px-10 pt-[34px] pb-20">
-          <Link
-            href="/kid"
-            className="mb-5 flex items-center gap-[1.5px] text-[14px] font-bold text-muted-dark"
-          >
+    <div className="mx-auto w-full max-w-[820px] px-10 pt-[34px] pb-20">
+      <Link
+        href="/staff/children"
+        className="mb-5 flex items-center gap-[1.5px] text-[14px] font-bold text-muted-dark"
+      >
             <svg
               width="18"
               height="18"
@@ -264,7 +259,5 @@ export default async function KidProfilePage({
             </div>
           </div>
         </div>
-      </main>
-    </div>
   );
 }

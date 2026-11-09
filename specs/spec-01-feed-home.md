@@ -1,4 +1,4 @@
-# SPEC-01 — Feed como Home (`/`)
+# SPEC-01 — Feed del staff (`/staff`)
 
 | Campo            | Valor                                             |
 | ---------------- | ------------------------------------------------- |
@@ -6,11 +6,13 @@
 | **Rama**         | `feat/spec-01-feed-home`                          |
 | **Estado**       | `Implemeted`                         |
 | **Fuente**       | `references/pantallas/feed.dc.html`               |
-| **Referencia**   | `references/screenshots/feed.png`                 |
+| **Referencia** | `references/screenshots/feed.png`                 |
+
+> **Actualización (change `split-staff-family-panels`):** el feed del staff vive en `/staff` (`app/staff/page.tsx`). `/` resuelve el rol y redirige a `/staff` (staff/admin) o `/family` (padre). El shell se movió a `app/staff/layout.tsx` + `app/_components/staff-sidebar.tsx` sobre `sidebar-shell.tsx`. Las referencias históricas a `app/page.tsx` en esta spec describen la implementación original.
 
 ## Descripción
 
-Implementar la plantilla `feed.dc.html` como página principal (`app/page.tsx`, ruta `/`) de la aplicación OpenDayCare.
+Implementar la plantilla `feed.dc.html` como feed del área de staff (`app/staff/page.tsx`, ruta `/staff`) de la aplicación OpenDayCare. La raíz `/` resolvía originalmente este feed; hoy es un resolver de rol que redirige a `/staff` o `/family`.
 
 **Alcance SOLO visual:**
 
@@ -85,7 +87,7 @@ Variantes de badges de post (fondo / punto / texto):
 - Metadata: `title: "OpenDayCare · Sala Soles"`, `description` en español (feed de la guardería).
 - `body`: `min-h-full` (quitar `flex flex-col` que sobra).
 
-#### `app/page.tsx`
+#### `app/staff/page.tsx`
 
 - Reemplazar **todo** el contenido de la plantilla create-next-app.
 - Estructura:
@@ -165,7 +167,7 @@ Props: `{ post: Post }`. Article:
 
 ## Checklist de aceptación
 
-- [x] `/` renderiza el feed idéntico a `references/pantallas/feed.dc.html` (comparar con captura Playwright en `.playwright-mcp/` vs `references/screenshots/feed.png`).
+- [x] `/staff` renderiza el feed idéntico a `references/pantallas/feed.dc.html` (comparar con captura Playwright en `.playwright-mcp/` vs `references/screenshots/feed.png`).
 - [x] Fuentes Fredoka/Nunito cargadas con `next/font` (sin `<link>` externo visible en el HTML final).
 - [x] Cero estilos inline heredados del mockup: todo vía clases Tailwind (los únicos `style` permitidos serían gradiente con comillas problemáticas, preferir clases `bg-gradient-to-*`).
 - [x] Sidebar sticky con scroll independiente del `main`.

@@ -322,7 +322,7 @@ function CreatePostDialog({ onClose }: { onClose: () => void }) {
   }, [onClose]);
 
   // Recipients are loaded when the dialog mounts, not when the page renders:
-  // `/` and `/kid` never query children just to show the trigger button.
+  // `/staff` and `/staff/children` never query children just to show the trigger button.
   useEffect(() => {
     let cancelled = false;
 

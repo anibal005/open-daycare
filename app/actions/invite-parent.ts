@@ -20,7 +20,7 @@ const INVITE_CODE_ATTEMPTS = 5;
 
 // Row shapes read by this action. The Supabase helpers in `lib/supabase/*` are
 // not instantiated with the generated `Database` type, so the columns used here
-// are declared locally (same pattern as `app/kid/[id]/page.tsx`).
+// are declared locally (same pattern as `app/staff/children/[id]/page.tsx`).
 interface InviterRow {
   id: string;
   daycare_id: string;
@@ -289,6 +289,6 @@ export async function inviteParentToChild(input: {
     return { ok: false, error: "No se pudo enviar el correo. Intentá nuevamente." };
   }
 
-  revalidatePath(`/kid/${input.childId}`);
+  revalidatePath(`/staff/children/${input.childId}`);
   return { ok: true };
 }

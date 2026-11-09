@@ -33,7 +33,7 @@ La creación del post, sus etiquetas y sus fotos entra por la función `public.c
 - ❌ Selección de una sala puntual (`room_id`): "Toda la sala" es todo el daycare.
 - ❌ Notificaciones, realtime, borradores, programación o toast de confirmación.
 - ❌ Limpieza automática de objetos huérfanos en Storage (solo se intenta borrar lo subido cuando falla la creación).
-- ❌ Cambios en `/kid`, `/kid/[id]`, `/login` o `/activate-account` más allá del helper de avatar.
+- ❌ Cambios en `/staff/children`, `/staff/children/[id]`, `/login` o `/activate-account` más allá del helper de avatar.
 
 ## Reglas globales
 
@@ -145,7 +145,7 @@ const { data, error } = await supabase
   .limit(50);
 ```
 
-Filas declaradas localmente (los helpers no usan el tipo `Database` generado, mismo patrón que `app/kid/page.tsx`):
+Filas declaradas localmente (los helpers no usan el tipo `Database` generado, mismo patrón que `app/staff/children/page.tsx`):
 
 ```ts
 interface FeedPostRow {
@@ -177,7 +177,7 @@ Reglas de armado:
 - **Contadores:** `reactions[0]?.count ?? 0` y `comments[0]?.count ?? 0` (PostgREST devuelve `[{ count }]`).
 - **Fotos:** se piden todas las `storage_path` juntas con `supabase.storage.from("post-photos").createSignedUrls(paths, 3600)`. Se mapea por `path`; si un ítem vuelve con `error` o sin `signedUrl`, esa foto se omite (no se renderiza un `<img>` roto). Se ordenan por `position`.
 - **Error de query:** `console.error("[feed] Failed to load posts", error.code)` y `{ ok: false }`. El componente muestra el mensaje de error, no el estado vacío.
-- `getFeedPosts` **no** llama a `connection()`: eso queda en el componente dentro de `<Suspense>`, igual que `app/kid/page.tsx`.
+- `getFeedPosts` **no** llama a `connection()`: eso queda en el componente dentro de `<Suspense>`, igual que `app/staff/children/page.tsx`.
 
 ### `app/actions/get-post-recipients.ts` (crear)
 
@@ -200,7 +200,7 @@ export async function getPostRecipients(): Promise<GetPostRecipientsResult>;
 - Niños: `children.select("id, full_name, photo_consent, rooms!inner(daycare_id)").eq("status", "active").eq("rooms.daycare_id", profile.daycare_id).order("full_name")`.
 - Devuelve `daycareId` porque el navegador lo necesita para armar el path de Storage.
 - Error de Supabase → `{ ok: false, error: "No se pudieron cargar los niños" }` y `console.error` con el `code`.
-- La acción se llama **al montar el diálogo**, no al renderizar la página: `/` y `/kid` no consultan niños para mostrar el botón.
+- La acción se llama **al montar el diálogo**, no al renderizar la página: `/` y `/staff/children` no consultan niños para mostrar el botón.
 
 ### `app/actions/create-post.ts` (crear)
 
@@ -513,7 +513,7 @@ export function getAvatarToneForName(name: string): AvatarTone {
 - Eliminar el array mock `children` (queda sin consumidores al sacar `RECIPIENTS` del modal). Se conservan `AvatarTone`, `AVATAR_TONES`, `Parent`, `Child`, `PARENT_STATUS_LABELS` y `PARENT_STATUS_META`.
 - Sin este cambio, el modal seguiría mostrando Mateo, Sofía y Benjamín en vez de los niños reales.
 
-#### `app/kid/[id]/page.tsx`
+#### `app/staff/children/[id]/page.tsx`
 
 - Reemplazar la función local `getToneForName` y el array `TONES` por `getAvatarToneForName` importado de `@/lib/children`. Es un cambio mecánico de 4 líneas; no altera el render.
 
@@ -521,7 +521,7 @@ export function getAvatarToneForName(name: string): AvatarTone {
 
 0. Verificar que las migraciones de la spec DB estén aplicadas: existen `posts`, `post_children`, `post_photos`, `reactions`, `comments`, el bucket `post-photos` y el RPC `create_post`. Si falta alguna, detenerse y avisar: esta spec no se implementa a medias.
 1. `lib/posts.ts`: reemplazar `Post`/`PostPhoto`/`posts` por `FeedPost`/`FeedPostPhoto` y conservar el catálogo. Verificación: `npx tsc --noEmit` marca solo los consumidores que se actualizan en los pasos siguientes.
-2. `lib/children.ts`: agregar `getAvatarToneForName` y borrar el array mock; actualizar `app/kid/[id]/page.tsx`. Verificación: `/kid/[id]` muestra los mismos avatares que antes.
+2. `lib/children.ts`: agregar `getAvatarToneForName` y borrar el array mock; actualizar `app/staff/children/[id]/page.tsx`. Verificación: `/staff/children/[id]` muestra los mismos avatares que antes.
 3. `lib/posts-data.ts` + `app/page.tsx`: feed real con `connection()`, Suspense, error, vacío y skeleton; cambiar la etiqueta a `PUBLICACIONES`. Verificación: `/` muestra los 3 posts sembrados, ordenados por hora descendente, con "publicado por vos" y contadores en 0.
 4. `post-card.tsx`: nuevo tipo y render de 0–2 fotos. Verificación: los posts sin fotos no muestran placeholder; con fotos de prueba, 1 y 2 se ven como el bloque definido.
 5. `app/actions/get-post-recipients.ts` + carga diferida en el modal (chips reales, loading, error y reintento, defaults). Verificación: los chips muestran "Thiago" y "Celeste" con el tono derivado de su nombre; sin niños, queda "Toda la sala".
@@ -643,7 +643,7 @@ export function getAvatarToneForName(name: string): AvatarTone {
 | La orientación EXIF de fotos de celular sale rotada. | `createImageBitmap(file, { imageOrientation: "from-image" })`. |
 | Dos fotos y muchas publicaciones hacen lento el feed por las signed URLs. | Un solo `createSignedUrls` por request, `loading="lazy"`, `decoding="async"` y límite de 50 posts. |
 | El modal crece con muchos niños del daycare. | Los chips envuelven (`flex-wrap`) y el overlay es `overflow-y-auto`; el caso normal son pocos niños. |
-| El tono por nombre puede repetir color entre niños. | Es solo estético y replica el criterio de `/kid/[id]`; no identifica al niño. |
+| El tono por nombre puede repetir color entre niños. | Es solo estético y replica el criterio de `/staff/children/[id]`; no identifica al niño. |
 | La hora fija en `America/Argentina/Buenos_Aires` no sirve para guarderías de otra zona. | Se centraliza en una constante (`APP_TIME_ZONE`) para cambiarla cuando el producto se internacionalice. |
 | El usuario puede publicar sin fotos aunque el tipo sea "Foto". | Es una regla de producto aceptada: el tipo describe el contenido, no obliga a adjuntar archivos. |
 | `router.refresh()` no muestra el post si la cookie de sesión expiró. | La Server Action devuelve "Tu sesión expiró…" y el modal queda abierto con el error. |
@@ -661,4 +661,4 @@ export function getAvatarToneForName(name: string): AvatarTone {
 - Limpieza automática de objetos huérfanos en Storage.
 - Tests automatizados (el proyecto no tiene runner).
 - Responsive/mobile: los mockups de referencia son desktop.
-- Cambios en `/login`, `/activate-account`, `/kid` o `/kid/[id]` más allá del helper de avatar.
+- Cambios en `/login`, `/activate-account`, `/staff/children` o `/staff/children/[id]` más allá del helper de avatar.

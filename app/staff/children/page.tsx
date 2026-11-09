@@ -1,6 +1,5 @@
 import AddChildModal from "@/app/_components/add-child-modal";
 import KidCard from "@/app/_components/kid-card";
-import Sidebar from "@/app/_components/sidebar";
 import { createClient } from "@/lib/supabase/server";
 import { Suspense } from "react";
 import { connection } from "next/server";
@@ -121,18 +120,12 @@ async function KidsContent() {
   );
 }
 
-export default function KidsPage() {
+export default function StaffChildrenPage() {
   return (
-    <div className="flex min-h-screen bg-cream">
-      <Sidebar activeItem="kids" />
-
-      <main className="h-screen flex-1 min-w-0 overflow-y-auto">
-        <div className="mx-auto w-full max-w-[880px] px-10 pt-[34px] pb-20">
-          <Suspense fallback={<div>Cargando...</div>}>
-            <KidsContent />
-          </Suspense>
-        </div>
-      </main>
+    <div className="mx-auto w-full max-w-[880px] px-10 pt-[34px] pb-20">
+      <Suspense fallback={<div>Cargando...</div>}>
+        <KidsContent />
+      </Suspense>
     </div>
   );
 }

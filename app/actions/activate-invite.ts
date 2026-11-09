@@ -11,7 +11,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 // Row shape read by this action. The Supabase helpers are not instantiated with
 // the generated `Database` type, so the columns used here are declared locally
-// (same pattern as `app/kid/[id]/page.tsx`).
+// (same pattern as `app/staff/children/[id]/page.tsx`).
 interface InvitationRow {
   id: string;
   daycare_id: string;

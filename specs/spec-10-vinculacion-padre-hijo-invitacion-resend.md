@@ -2,12 +2,12 @@
 
 **ID:** `spec-10-vinculacion-padre-hijo-invitacion-resend.md`  
 **Ubicación:** `specs/spec-10-vinculacion-padre-hijo-invitacion-resend.md`  
-**Relacionado con:** `spec-05-modal-vincular-padre.md`, `spec-03-login-activar-cuenta.md`, `app/kid/[id]/page.tsx`, `app/_components/link-parent-modal.tsx`, `app/(auth)/activate-account/page.tsx`  
+**Relacionado con:** `spec-05-modal-vincular-padre.md`, `spec-03-login-activar-cuenta.md`, `app/staff/children/[id]/page.tsx`, `app/_components/link-parent-modal.tsx`, `app/(auth)/activate-account/page.tsx`  
 **Tecnologías:** Next.js 16 (App Router), TypeScript, Supabase (Auth + DB + RLS), [Resend](https://resend.com/) + paquete `resend`
 
 ## 1. Objetivo
 
-Permitir al personal de la guardería (roles `admin` o `staff`) enviar una invitación por correo electrónico desde la ficha del niño (`/kid/[id]`) para vincular un padre/madre/tutor. 
+Permitir al personal de la guardería (roles `admin` o `staff`) enviar una invitación por correo electrónico desde la ficha del niño (`/staff/children/[id]`) para vincular un padre/madre/tutor. 
 
 El flujo debe:
 
@@ -19,7 +19,7 @@ El flujo debe:
 
 ## 2. Contexto actual
 
-- **Ficha del niño** (`app/kid/[id]/page.tsx`): muestra `LinkedParents` con los padres ya vinculados (`parent_children` + `users`). Tiene el botón "Vincular otro padre" que renderiza `LinkParentModal`. **Pendiente:** solo se listan vínculos `active`; las invitaciones `pending` no se consultan ni se muestran.
+- **Ficha del niño** (`app/staff/children/[id]/page.tsx`): muestra `LinkedParents` con los padres ya vinculados (`parent_children` + `users`). Tiene el botón "Vincular otro padre" que renderiza `LinkParentModal`. **Pendiente:** solo se listan vínculos `active`; las invitaciones `pending` no se consultan ni se muestran.
 - **Modal vincular padre** (`app/_components/link-parent-modal.tsx`): valida nombre/email/parentesco y llama a `inviteParentToChild`; muestra loading y errores, y cierra el modal al recibir `{ ok: true }`. **Pendiente:** no muestra feedback de éxito al cerrar.
 - **Activar cuenta** (`app/(auth)/activate-account/page.tsx` + `activate-account-form.tsx`): lee `code`/`email` de `searchParams`, los prellena y llama a `activateAccountFromInvite`. Código y email se muestran como campos de solo lectura.
 - **Server Actions**: `app/actions/invite-parent.ts` (invitación + Resend) y `app/actions/activate-invite.ts` (validación + alta de cuenta + vínculo). El cliente `service_role` reutilizable vive en `lib/supabase/admin.ts`.
@@ -127,7 +127,7 @@ Ya configurado en el proyecto. Solo documentar en `.env.template`.
 
 ## 7. Criterios de aceptación
 
-### Desde ficha del niño (`/kid/[id]`)
+### Desde ficha del niño (`/staff/children/[id]`)
 - [x] Solo usuarios con rol `admin` o `staff` pueden enviar invitaciones
 - [x] Al enviar, se crea/gestiona invitación correctamente
 - [x] Si hay invitación pendiente, se genera nuevo código, se revoca la anterior y se reenvía
@@ -136,7 +136,7 @@ Ya configurado en el proyecto. Solo documentar en `.env.template`.
 - [ ] Modal se cierra con feedback de éxito
   > El modal se cierra al recibir `{ ok: true }`, pero no muestra ningún mensaje de confirmación ("Invitación enviada a …"). Falta el feedback descrito en §4.1 paso 9.
 - [ ] En `Padres vinculados` aparece el invitado con estado **PENDIENTE** / "invitación enviada"
-  > `app/kid/[id]/page.tsx` arma `parents` solo desde `parent_children` + invitaciones `accepted`; las invitaciones `pending` no se consultan ni se renderizan.
+  > `app/staff/children/[id]/page.tsx` arma `parents` solo desde `parent_children` + invitaciones `accepted`; las invitaciones `pending` no se consultan ni se renderizan.
 
 ### Activación (`/activate-account`)
 - [x] Lee `code` y `email` de query params y prellena campos
