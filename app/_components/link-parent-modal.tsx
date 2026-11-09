@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { generateInviteCode } from "@/lib/invite-code";
+import { inviteParentToChild } from "@/app/actions/invite-parent";
 
 const FIELD_LABEL_CLASS =
   "mb-2 block text-[12px] font-extrabold tracking-[.7px] text-muted-dark";
@@ -31,12 +31,19 @@ function fieldClass(hasError: boolean, extra = "") {
   return `${INPUT_CLASS} ${borderClass} ${extra}`;
 }
 
-export default function LinkParentModal({ childName }: { childName: string }) {
+export default function LinkParentModal({
+  childName,
+  childId,
+}: {
+  childName: string;
+  childId: string;
+}) {
   const [isOpen, setIsOpen] = useState(false);
-  const [inviteCode, setInviteCode] = useState("");
   const [kinship, setKinship] = useState<Kinship>("mother");
   const [nameError, setNameError] = useState<string | null>(null);
   const [emailError, setEmailError] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const triggerRef = useRef<HTMLButtonElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
@@ -161,13 +168,14 @@ export default function LinkParentModal({ childName }: { childName: string }) {
   }
 
   function handleOpen() {
-    setInviteCode(generateInviteCode());
     setNameError(null);
     setEmailError(null);
+    setSubmitError(null);
+    setIsSubmitting(false);
     setIsOpen(true);
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const nextNameError = validateName(readName());
@@ -175,6 +183,7 @@ export default function LinkParentModal({ childName }: { childName: string }) {
 
     setNameError(nextNameError);
     setEmailError(nextEmailError);
+    setSubmitError(null);
 
     if (nextNameError) {
       nameInputRef.current?.focus({ preventScroll: true });
@@ -186,6 +195,21 @@ export default function LinkParentModal({ childName }: { childName: string }) {
       return;
     }
 
+    setIsSubmitting(true);
+    const result = await inviteParentToChild({
+      childId,
+      fullName: readName(),
+      email: readEmail(),
+      relationship: kinship,
+    });
+
+    if (!result.ok) {
+      setSubmitError(result.error || "Error al enviar invitación");
+      setIsSubmitting(false);
+      return;
+    }
+
+    setIsSubmitting(false);
     setIsOpen(false);
   }
 
@@ -379,20 +403,27 @@ export default function LinkParentModal({ childName }: { childName: string }) {
 
               <div className="mb-[20px] rounded-[16px] border-[1.5px] border-dashed border-invite-line bg-invite-bg p-[18px] text-center">
                 <div className="mb-2 text-[12px] font-extrabold tracking-[.7px] text-invite-label">
-                  CÓDIGO DE INVITACIÓN
+                  SE ENVIARÁ UN CÓDIGO POR CORREO
                 </div>
-                <div className="font-fredoka text-[34px] font-semibold tracking-[7px] text-invite-code">
-                  {inviteCode}
+                <div className="text-[14px] text-invite-label">
+                  Se generará un nuevo código y se enviará al correo ingresado
                 </div>
                 <div className="mt-[6px] text-[13px] text-invite-label">
                   Vence en 7 días
                 </div>
               </div>
 
+              {submitError && (
+                <p role="alert" className={ERROR_MESSAGE_CLASS}>
+                  {submitError}
+                </p>
+              )}
+
               <button
                 type="submit"
                 ref={submitButtonRef}
-                className="flex w-full cursor-pointer items-center justify-center gap-[9px] rounded-[14px] bg-gradient-to-b from-[#F4977E] to-[#EE8164] p-[14px] text-[15.5px] font-extrabold text-white shadow-[0_10px_22px_-8px_rgba(238,129,100,.7)]"
+                disabled={isSubmitting}
+                className="flex w-full cursor-pointer items-center justify-center gap-[9px] rounded-[14px] bg-gradient-to-b from-[#F4977E] to-[#EE8164] p-[14px] text-[15.5px] font-extrabold text-white shadow-[0_10px_22px_-8px_rgba(238,129,100,.7)] disabled:opacity-70"
               >
                 <svg
                   width="19"
@@ -408,7 +439,7 @@ export default function LinkParentModal({ childName }: { childName: string }) {
                   <path d="m22 2-7 20-4-9-9-4z" />
                   <path d="M22 2 11 13" />
                 </svg>
-                Enviar invitación
+                {isSubmitting ? "Enviando..." : "Enviar invitación"}
               </button>
             </form>
           </div>

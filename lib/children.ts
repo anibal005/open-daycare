@@ -8,6 +8,7 @@ export interface Parent {
   tone: AvatarTone;
   roleLabel: string; // "Mamá" | "Papá" — display only
   status: ParentStatus;
+  invitedBy?: string | null;
 }
 
 export interface Child {
@@ -49,194 +50,16 @@ export const PARENT_STATUS_META: Record<ParentStatus, string> = {
   pending: "invitación enviada",
 };
 
-export const children: Child[] = [
-  {
-    id: "mateo-fernandez",
-    name: "Mateo Fernández",
-    avatarLetter: "M",
-    tone: "blue",
-    ageLabel: "3 años",
-    parentsCount: 2,
-    allergyTag: "MANÍ",
-    profile: {
-      birthDate: "12 mar 2022",
-      room: "Soles",
-      admission: "feb 2025",
-      allergyNote:
-        "Alergia al maní. Evitar frutos secos. Lleva inhalador en la mochila.",
-      parents: [
-        {
-          name: "Lucía Fernández",
-          avatarLetter: "L",
-          tone: "purple",
-          roleLabel: "Mamá",
-          status: "active",
-        },
-        {
-          name: "Diego Fernández",
-          avatarLetter: "D",
-          tone: "blue",
-          roleLabel: "Papá",
-          status: "pending",
-        },
-      ],
-    },
-  },
-  {
-    id: "sofia-mendez",
-    name: "Sofía Méndez",
-    avatarLetter: "S",
-    tone: "pink",
-    ageLabel: "2 años",
-    parentsCount: 1,
-    profile: {
-      birthDate: "22 jul 2023",
-      room: "Soles",
-      admission: "mar 2025",
-      parents: [
-        {
-          name: "Carolina Méndez",
-          avatarLetter: "C",
-          tone: "pink",
-          roleLabel: "Mamá",
-          status: "active",
-        },
-      ],
-    },
-  },
-  {
-    id: "benjamin-ruiz",
-    name: "Benjamín Ruiz",
-    avatarLetter: "B",
-    tone: "green",
-    ageLabel: "3 años",
-    parentsCount: 2,
-    profile: {
-      birthDate: "28 oct 2021",
-      room: "Soles",
-      admission: "abr 2024",
-      parents: [
-        {
-          name: "Paula Ruiz",
-          avatarLetter: "P",
-          tone: "green",
-          roleLabel: "Mamá",
-          status: "active",
-        },
-        {
-          name: "Jorge Ruiz",
-          avatarLetter: "J",
-          tone: "blue",
-          roleLabel: "Papá",
-          status: "active",
-        },
-      ],
-    },
-  },
-  {
-    id: "valentina-soto",
-    name: "Valentina Soto",
-    avatarLetter: "V",
-    tone: "yellow",
-    ageLabel: "2 años",
-    parentsCount: 0,
-    needsParentLink: true,
-    profile: {
-      birthDate: "14 nov 2023",
-      room: "Soles",
-      admission: "sep 2025",
-      parents: [],
-    },
-  },
-  {
-    id: "tomas-diaz",
-    name: "Tomás Díaz",
-    avatarLetter: "T",
-    tone: "purple",
-    ageLabel: "3 años",
-    parentsCount: 1,
-    allergyTag: "LACTOSA",
-    profile: {
-      birthDate: "02 may 2022",
-      room: "Soles",
-      admission: "jun 2024",
-      allergyNote:
-        "Intolerancia a la lactosa. Revisar las etiquetas de los snacks y la merienda.",
-      parents: [
-        {
-          name: "Marcela Díaz",
-          avatarLetter: "M",
-          tone: "purple",
-          roleLabel: "Mamá",
-          status: "active",
-        },
-      ],
-    },
-  },
-  {
-    id: "emma-castro",
-    name: "Emma Castro",
-    avatarLetter: "E",
-    tone: "pink",
-    ageLabel: "2 años",
-    parentsCount: 1,
-    profile: {
-      birthDate: "19 sep 2023",
-      room: "Soles",
-      admission: "ago 2025",
-      parents: [
-        {
-          name: "Ana Castro",
-          avatarLetter: "A",
-          tone: "yellow",
-          roleLabel: "Mamá",
-          status: "active",
-        },
-      ],
-    },
-  },
-  {
-    id: "lucas-romero",
-    name: "Lucas Romero",
-    avatarLetter: "L",
-    tone: "blue",
-    ageLabel: "3 años",
-    parentsCount: 1,
-    profile: {
-      birthDate: "07 feb 2022",
-      room: "Soles",
-      admission: "ene 2025",
-      parents: [
-        {
-          name: "Silvina Romero",
-          avatarLetter: "S",
-          tone: "green",
-          roleLabel: "Mamá",
-          status: "active",
-        },
-      ],
-    },
-  },
-  {
-    id: "olivia-vega",
-    name: "Olivia Vega",
-    avatarLetter: "O",
-    tone: "green",
-    ageLabel: "2 años",
-    parentsCount: 1,
-    profile: {
-      birthDate: "30 nov 2023",
-      room: "Soles",
-      admission: "jul 2025",
-      parents: [
-        {
-          name: "Ramiro Vega",
-          avatarLetter: "R",
-          tone: "blue",
-          roleLabel: "Papá",
-          status: "active",
-        },
-      ],
-    },
-  },
+const AVATAR_TONE_ORDER: AvatarTone[] = [
+  "blue",
+  "pink",
+  "green",
+  "yellow",
+  "purple",
 ];
+
+// Purely cosmetic: the tone repeats across names and never identifies a child.
+export function getAvatarToneForName(name: string): AvatarTone {
+  const index = (name.charCodeAt(0) || 0) % AVATAR_TONE_ORDER.length;
+  return AVATAR_TONE_ORDER[index];
+}

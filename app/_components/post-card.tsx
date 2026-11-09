@@ -1,4 +1,4 @@
-import type { Post } from "@/lib/posts";
+import type { FeedPost } from "@/lib/posts";
 import { POST_TYPE_LABELS, POST_TYPE_STYLES } from "@/lib/posts";
 
 const HEART_PATH =
@@ -9,10 +9,7 @@ const COMMENT_PATH =
 
 const MEGAPHONE_PATH = "m3 11 18-5v12L3 14v-3zM11.6 16.8a3 3 0 1 1-5.8-1.6";
 
-const IMAGE_PATH_RECT = { x: 3, y: 3, width: 18, height: 18, rx: 2 };
-const IMAGE_REST_PATH = "m21 15-3.6-3.6a2 2 0 0 0-2.8 0L6 21";
-
-export default function PostCard({ post }: { post: Post }) {
+export default function PostCard({ post }: { post: FeedPost }) {
   const styles = POST_TYPE_STYLES[post.type];
   const label = POST_TYPE_LABELS[post.type];
 
@@ -32,6 +29,7 @@ export default function PostCard({ post }: { post: Post }) {
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
+              aria-hidden="true"
             >
               <path d={MEGAPHONE_PATH} />
             </svg>
@@ -45,7 +43,7 @@ export default function PostCard({ post }: { post: Post }) {
         )}
         <div className="flex-1">
           <div className="font-fredoka text-[16.5px] font-semibold text-ink">
-            {post.childName}
+            {post.headerName}
           </div>
           <div className="text-[12.5px] text-muted">
             {post.time} · {post.authorLabel}
@@ -68,29 +66,40 @@ export default function PostCard({ post }: { post: Post }) {
 
       <div className="mb-[10px] text-[12.5px] text-muted">{post.audience}</div>
 
-      <p className="text-[15.5px] leading-[1.55] text-body-ink">{post.text}</p>
+      <p className="text-[15.5px] leading-[1.55] text-body-ink">{post.body}</p>
 
-      {post.photo ? (
-        <a
-          href="#"
-          className="mt-[14px] flex h-[200px] flex-col items-center justify-center gap-2 rounded-[16px] border-[1.5px] border-dashed border-[#DBCDBA] bg-[#F4ECE1] text-[#B0A290]"
+      {post.photos.length > 0 ? (
+        <div
+          className={
+            post.photos.length === 1
+              ? "mt-[14px]"
+              : "mt-[14px] grid grid-cols-2 gap-2"
+          }
         >
-          <svg
-            width="30"
-            height="30"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.7"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <rect {...IMAGE_PATH_RECT} />
-            <circle cx="9" cy="9" r="2" />
-            <path d={IMAGE_REST_PATH} />
-          </svg>
-          <span className="text-[13.5px]">{post.photo.caption}</span>
-        </a>
+          {post.photos.map((photo) => (
+            <a
+              key={photo.id}
+              href={photo.url}
+              target="_blank"
+              rel="noreferrer"
+              className="block"
+            >
+              <img
+                src={photo.url}
+                alt={photo.alt || "Foto de la publicación"}
+                width={photo.width ?? undefined}
+                height={photo.height ?? undefined}
+                loading="lazy"
+                decoding="async"
+                className={
+                  post.photos.length === 1
+                    ? "max-h-[420px] w-full rounded-[16px] border border-line object-cover"
+                    : "aspect-square w-full rounded-[16px] border border-line object-cover"
+                }
+              />
+            </a>
+          ))}
+        </div>
       ) : null}
 
       <div className="mt-4 flex items-center gap-[18px] border-t border-line-soft pt-[14px]">

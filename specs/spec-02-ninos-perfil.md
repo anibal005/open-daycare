@@ -1,4 +1,4 @@
-# SPEC-02 — Rutas `/kid` y `/kid/[id]` (lista y perfil de niños)
+# SPEC-02 — Rutas `/staff/children` y `/staff/children/[id]` (lista y perfil de niños)
 
 | Campo          | Valor                                                 |
 | -------------- | ----------------------------------------------------- |
@@ -11,7 +11,7 @@
 
 ## Descripción
 
-Implementar las plantillas `ninos.dc.html` (lista) y `perfil-nino.dc.html` (detalle) como rutas `/kid` (`app/kid/page.tsx`) y `/kid/[id]` (`app/kid/[id]/page.tsx`) de la aplicación OpenDayCare.
+Implementar las plantillas `ninos.dc.html` (lista) y `perfil-nino.dc.html` (detalle) como rutas `/staff/children` (`app/staff/children/page.tsx`) y `/staff/children/[id]` (`app/staff/children/[id]/page.tsx`) de la aplicación OpenDayCare.
 
 **Alcance SOLO visual:**
 
@@ -106,7 +106,7 @@ Badges y avatares usan valores bracket directamente (son pares fondo/texto puntu
 #### `app/_components/sidebar.tsx`
 
 - Agregar prop opcional `activeItem?: "feed" | "kids"` con default `"feed"` (así `app/page.tsx` no cambia).
-- Reemplazar la constante `NAV_ITEMS` (que hardcodea `active: true` en Feed) por items con `id` (`"feed" | "kids" | "avisos" | "cuenta"`) y `href`: Feed → `/`, Niños → `/kid`, Avisos y Mi cuenta → `#`.
+- Reemplazar la constante `NAV_ITEMS` (que hardcodea `active: true` en Feed) por items con `id` (`"feed" | "kids" | "avisos" | "cuenta"`) y `href`: Feed → `/`, Niños → `/staff/children`, Avisos y Mi cuenta → `#`.
 - El resaltado activo (`bg-coral-soft text-coral-dark font-extrabold`) se calcula con `item.id === activeItem`.
 - El logo y el botón "Nueva publicación" siguen en `#`.
 
@@ -116,9 +116,9 @@ Badges y avatares usan valores bracket directamente (son pares fondo/texto puntu
 
 ### Crear
 
-#### `app/_components/kid-card.tsx`
+#### `app/_components/staff/children-card.tsx`
 
-Props: `{ child: Child }`. Link a `/kid/{child.id}`:
+Props: `{ child: Child }`. Link a `/staff/children/{child.id}`:
 
 - Contenedor: `flex items-center gap-[14px] min-w-0 bg-card border border-line rounded-[18px] p-4 shadow-[0_4px_14px_-12px_rgba(120,90,60,.5)] transition duration-150 hover:border-kid-hover hover:-translate-y-0.5`.
 - Avatar 48px: circle con letra (Fredoka 600, 19px) usando `AVATAR_TONES[child.tone]`.
@@ -144,7 +144,7 @@ Props: `{ parents: Parent[] }`. Tarjeta lateral:
 - Filas de padres (`flex items-center gap-3` + `gap-[14px]` entre filas): avatar 40px con `AVATAR_TONES`, nombre (800, 14.5px, ink), meta `{roleLabel} · ` + `"activa"` / `"invitación enviada"` (12.5px, muted), badge estado a la derecha (`text-[10.5px] font-extrabold px-[9px] py-1 rounded-full`, colores por `status`).
 - Fila final link `#`: círculo 40px `border-[1.5px] border-dashed border-[#D8CBBA]` con `+` (`text-[#B0A290]`) + "Vincular otro padre" (`font-extrabold text-[14.5px] text-alert-title`).
 
-#### `app/kid/page.tsx` — lista (`/kid`)
+#### `app/staff/children/page.tsx` — lista (`/staff/children`)
 
 Estructura (misma que el resto de la app: `div.flex.min-h-screen.bg-cream` → `<Sidebar activeItem="kids" />` → `main.h-screen.flex-1.min-w-0.overflow-y-auto`):
 
@@ -154,12 +154,12 @@ Estructura (misma que el resto de la app: `div.flex.min-h-screen.bg-cream` → `
 - Separador de sección (`flex items-center gap-3 mb-[14px]`): "SALA SOLES" (`text-[12.5px] font-extrabold tracking-[.8px] text-ink`), "8 niños" (`text-[13px] text-muted`), línea `flex-1 h-px bg-line-divider`.
 - Grid: `grid grid-cols-2 gap-[14px]` con `.map()` de `children` renderizando `<KidCard />`.
 
-#### `app/kid/[id]/page.tsx` — perfil (`/kid/[id]`)
+#### `app/staff/children/[id]/page.tsx` — perfil (`/staff/children/[id]`)
 
 - `generateStaticParams()` con los 8 `children` (el sitio queda totalmente estático bajo `cacheComponents`).
 - `const { id } = await params;` → buscar el niño; si no existe → `notFound()`.
 - Sidebar `<Sidebar activeItem="kids" />`; contenedor `max-w-[820px] mx-auto px-10 pt-[34px] pb-20`.
-- Link "Volver a Niños" → `/kid` (`flex items-center gap-[1.5px] text-muted-dark font-bold text-[14px] mb-5`, chevron izquierdo 18px).
+- Link "Volver a Niños" → `/staff/children` (`flex items-center gap-[1.5px] text-muted-dark font-bold text-[14px] mb-5`, chevron izquierdo 18px).
 - Layout `flex gap-[26px] items-start flex-wrap`:
   - **Columna izquierda** (`flex-1 min-w-[300px] flex flex-col gap-[18px]`):
     - Encabezado (`flex items-center gap-[18px]`): avatar 84px (Fredoka 600, 34px, `AVATAR_TONES`), `h1` nombre (Fredoka 600, 28px) + `{ageLabel} · Sala {room}` (15px, `text-muted-dark`), link "Editar" → `#` (`border-[1.5px] border-line bg-card text-[#6E6359] font-bold text-[14px] px-4 py-[9px] rounded-[12px]`).
@@ -172,27 +172,27 @@ Estructura (misma que el resto de la app: `div.flex.min-h-screen.bg-cream` → `
 ## Plan de implementación
 
 1. Crear `lib/children.ts` con tipos (`AvatarTone`, `ParentStatus`, `Parent`, `Child`), `AVATAR_TONES`, labels de estado y `children` (8 registros). Verificación: `npx tsc --noEmit` sin errores.
-2. Refactorizar `app/_components/sidebar.tsx` con la prop `activeItem` y los hrefs nuevos (`/`, `/kid`). Verificación: `/` se ve idéntico al actual (Feed activo).
+2. Refactorizar `app/_components/sidebar.tsx` con la prop `activeItem` y los hrefs nuevos (`/`, `/staff/children`). Verificación: `/` se ve idéntico al actual (Feed activo).
 3. Agregar los tokens nuevos al `@theme` de `app/globals.css`. Verificación: `npm run dev` carga sin errores.
-4. Crear `app/_components/kid-card.tsx`. Verificación: `tsc` limpio.
-5. Crear `app/kid/page.tsx` con header, buscador, separador y grid. Verificación: `/kid` renderiza la lista completa con "Niños" activo en el Sidebar; captura Playwright en `.playwright-mcp/` y comparar con `references/screenshots/ninos.png`.
+4. Crear `app/_components/staff/children-card.tsx`. Verificación: `tsc` limpio.
+5. Crear `app/staff/children/page.tsx` con header, buscador, separador y grid. Verificación: `/staff/children` renderiza la lista completa con "Niños" activo en el Sidebar; captura Playwright en `.playwright-mcp/` y comparar con `references/screenshots/ninos.png`.
 6. Crear `app/_components/allergy-alert.tsx` y `app/_components/linked-parents.tsx`. Verificación: `tsc` limpio.
-7. Crear `app/kid/[id]/page.tsx` con `generateStaticParams`, `notFound()` y las dos columnas. Verificación: `/kid/mateo-fernandez` renderiza el perfil; captura Playwright y comparar con `references/pantallas/perfil-nino.dc.html`; `/kid/otro-id` devuelve 404.
+7. Crear `app/staff/children/[id]/page.tsx` con `generateStaticParams`, `notFound()` y las dos columnas. Verificación: `/staff/children/mateo-fernandez` renderiza el perfil; captura Playwright y comparar con `references/pantallas/perfil-nino.dc.html`; `/staff/children/otro-id` devuelve 404.
 8. Verificación final: `npm run lint`, `npx tsc --noEmit` y `npm run build` sin errores.
 
 ## Checklist de aceptación
 
-- [x] `/kid` renderiza idéntico a `references/pantallas/ninos.dc.html` (captura Playwright en `.playwright-mcp/` vs `references/screenshots/ninos.png`).
-- [ ] `/kid/mateo-fernandez` renderiza idéntico a `references/pantallas/perfil-nino.dc.html` (captura Playwright en `.playwright-mcp/`).
+- [x] `/staff/children` renderiza idéntico a `references/pantallas/ninos.dc.html` (captura Playwright en `.playwright-mcp/` vs `references/screenshots/ninos.png`).
+- [ ] `/staff/children/mateo-fernandez` renderiza idéntico a `references/pantallas/perfil-nino.dc.html` (captura Playwright en `.playwright-mcp/`).
   - **Pendiente — diferencias menores.** Comparación 1:1 de DOM/estilos a 1440×900: 56 elementos en ambos, geometría, tipografías, colores de fondo y espaciados idénticos, salvo 3 detalles que provienen de la propia spec (no del código):
     1. `Volver a Niños`: `gap-[1.5px]` (spec) vs `7px` del mockup.
     2. Letras de los avatares de padres: el mockup usa `#fff` sobre `#C9B6E8` y `#A9C7E8`; la implementación usa `AVATAR_TONES` (`#7B5FC0` / `#1F7A93` sobre `#C9B6E8` / `#A9D9E8`).
     3. `Vincular otro padre`: `#C5413A` (`alert-title`) vs `#C5503A` del mockup.
   - Evidencia: `.playwright-mcp/verify-spec-02-kid-profile.png` vs `.playwright-mcp/verify-spec-02-mockup-profile.png`. Requiere decisión: alinear spec/código al mockup o dar el mockup por desviado.
-- [x] Las 8 rutas `/kid/[id]` renderizan con los datos de `lib/children.ts` y pasan `generateStaticParams` (build los pre-renderiza).
+- [x] Las 8 rutas `/staff/children/[id]` renderizan con los datos de `lib/children.ts` y pasan `generateStaticParams` (build los pre-renderiza).
 - [x] Un `id` inexistente responde 404 (`notFound()`).
-- [x] Cada tarjeta de la lista navega a `/kid/{id}`; "Volver a Niños" navega a `/kid`.
-- [x] En `/kid` y `/kid/[id]` el item "Niños" del Sidebar está activo (fondo `coral-soft`, texto `coral-dark`, font 800); en `/` sigue activo "Feed".
+- [x] Cada tarjeta de la lista navega a `/staff/children/{id}`; "Volver a Niños" navega a `/staff/children`.
+- [x] En `/staff/children` y `/staff/children/[id]` el item "Niños" del Sidebar está activo (fondo `coral-soft`, texto `coral-dark`, font 800); en `/` sigue activo "Feed".
 - [x] El Sidebar con `activeItem` default no rompe `app/page.tsx` (Feed se ve igual que hoy).
 - [x] El buscador no filtra (input `readOnly`, sin estado de React).
 - [x] Hrefs en `#`: Editar, Agregar niño, Resumen del día, Vincular otro padre, Avisos, Mi cuenta, Nueva publicación, logout, logo.
@@ -203,23 +203,23 @@ Estructura (misma que el resto de la app: `div.flex.min-h-screen.bg-cream` → `
 
 ### Evidencia de la verificación
 
-- **Rutas:** las 8 rutas `/kid/{id}` responden 200 con el `h1` correcto y su tarjeta "PADRES VINCULADOS"; `/kid/otro-id` responde **404**.
-- **Navegación:** click en la primera tarjeta → `/kid/mateo-fernandez`; "Volver a Niños" → `/kid`.
-- **Sidebar:** en `/kid` y `/kid/[id]` "Niños" tiene `bg #FBE3D8`, `color #D9583C`, `font-weight 800`; en `/` el activo es "Feed". El sidebar de `/` no cambia respecto de `feed.dc.html` (misma geometría y estilos; solo cambia el orden interno de `path`/`circle` del ícono).
+- **Rutas:** las 8 rutas `/staff/children/{id}` responden 200 con el `h1` correcto y su tarjeta "PADRES VINCULADOS"; `/staff/children/otro-id` responde **404**.
+- **Navegación:** click en la primera tarjeta → `/staff/children/mateo-fernandez`; "Volver a Niños" → `/staff/children`.
+- **Sidebar:** en `/staff/children` y `/staff/children/[id]` "Niños" tiene `bg #FBE3D8`, `color #D9583C`, `font-weight 800`; en `/` el activo es "Feed". El sidebar de `/` no cambia respecto de `feed.dc.html` (misma geometría y estilos; solo cambia el orden interno de `path`/`circle` del ícono).
 - **Lista:** comparación 1:1 de DOM/estilos con `ninos.dc.html` → 72 elementos en ambos, **0 diferencias** (texto, geometría, fuentes, colores, radios, padding, gap).
-- **`/kid` capturas:** `.playwright-mcp/verify-spec-02-kid-list.png` vs `.playwright-mcp/verify-spec-02-mockup-list.png`.
+- **`/staff/children` capturas:** `.playwright-mcp/verify-spec-02-kid-list.png` vs `.playwright-mcp/verify-spec-02-mockup-list.png`.
 - **Buscador:** `<input readOnly>` con `placeholder="Buscar niño…"`; sin `useState` ni `onChange` en `app/`.
 - **Estilos:** sin `style={...}` en `app/**/*.tsx`; los 7 tokens nuevos (`alert-bg`, `alert-icon-bg`, `alert-title`, `alert-text`, `kid-hover`, `line-divider`, `muted-mid`) están en el `@theme` de `app/globals.css`.
-- **Comandos:** `npm run lint` sin salida de error · `npx tsc --noEmit` exit 0 · `npm run build` OK (14 páginas; `/kid/[id]` pre-renderiza las 8 rutas).
+- **Comandos:** `npm run lint` sin salida de error · `npx tsc --noEmit` exit 0 · `npm run build` OK (14 páginas; `/staff/children/[id]` pre-renderiza las 8 rutas).
 
 ## Decisiones
 
 - **Sí:** una sola spec para lista + perfil. Comparten mock data, layout y el refactor del Sidebar; separarlas duplicaría trabajo.
-- **Sí:** rutas `/kid` y `/kid/[id]` (elegidas por el usuario). Sigue la regla de nombres de código en inglés; el mockup usa `ninos`/`perfil-nino` pero eso es copy, no identificador.
+- **Sí:** rutas `/staff/children` y `/staff/children/[id]` (elegidas por el usuario). Sigue la regla de nombres de código en inglés; el mockup usa `ninos`/`perfil-nino` pero eso es copy, no identificador.
 - **Sí:** prop `activeItem` en `Sidebar`. Evita duplicar el componente; default `"feed"` para no tocar `app/page.tsx`.
 - **No:** duplicar el Sidebar por pantalla. Mantendría dos copias sincronizables.
 - **No:** que el buscador filtre. La spec es de interfaz, sin lógica; si se quiere, va en otro spec.
-- **No:** hrefs a rutas futuras (`/kid/editar`, `/resumen-dia`…). No existen y SPEC-01 ya estableció el patrón `#`.
+- **No:** hrefs a rutas futuras (`/staff/children/editar`, `/resumen-dia`…). No existen y SPEC-01 ya estableció el patrón `#`.
 - **Sí:** `notFound()` para ids inexistentes. Respuesta estándar de Next.js, sin diseñar pantalla extra.
 - **Sí:** datos completos de perfil para los 8 niños (Mateo calca del mockup; los otros 7 con datos plausibles coherentes con la lista).
 

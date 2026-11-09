@@ -1,4 +1,4 @@
-?# SPEC-05 — Modal "Vincular padre" sobre `/kid/[id]`
+?# SPEC-05 — Modal "Vincular padre" sobre `/staff/children/[id]`
 
 | Campo          | Valor                                                |
 | -------------- | ---------------------------------------------------- |
@@ -11,7 +11,7 @@
 
 ## Descripción
 
-Convertir `vincular-padre.dc.html` (hoy una pantalla completa) en un **modal** que se abre sobre `/kid/[id]` al presionar el botón **"Vincular otro padre"** de la tarjeta "PADRES VINCULADOS".
+Convertir `vincular-padre.dc.html` (hoy una pantalla completa) en un **modal** que se abre sobre `/staff/children/[id]` al presionar el botón **"Vincular otro padre"** de la tarjeta "PADRES VINCULADOS".
 
 El modal replica la tarjeta del mockup (ancho máximo 480px, radio 24px, fondo `#FBF4EC`, borde `#ECE0D0`, sombra `0 20px 50px -24px rgba(63,54,46,.35)`) con sus 4 bloques: banner informativo, campos "NOMBRE DEL PADRE/MADRE" + "EMAIL", chips de "PARENTESCO" y bloque de "CÓDIGO DE INVITACIÓN".
 
@@ -28,7 +28,7 @@ El modal replica la tarjeta del mockup (ancho máximo 480px, radio 24px, fondo `
 
 Mismas que SPEC-01/02/03/04: Tailwind v4 100%, tokens `--color-*` en el `@theme` de `app/globals.css`, valores arbitrarios con sintaxis bracket, fuentes Fredoka/Nunito ya cargadas con `next/font` (no se tocan), SVG inline como JSX, UI copy en español tal cual el mockup, **código en inglés**, hrefs a rutas inexistentes como `#`.
 
-**Patrón heredado de SPEC-04:** el `"use client"` va **solo** en el componente nuevo; `app/_components/linked-parents.tsx` y `app/kid/[id]/page.tsx` siguen siendo server components.
+**Patrón heredado de SPEC-04:** el `"use client"` va **solo** en el componente nuevo; `app/_components/linked-parents.tsx` y `app/staff/children/[id]/page.tsx` siguen siendo server components.
 
 ## Stack técnico
 
@@ -70,11 +70,11 @@ Agregar al bloque `@theme` (con el comentario `/* Link-parent modal (SPEC-05) */
 | `error`       | `#C5413A` | Texto de los mensajes de error (SPEC-04)                              |
 | `error-line`  | `#E8B0A6` | Borde del input inválido (SPEC-04)                                    |
 
-Un solo valor queda como bracket: `text-[#6E6359]` (texto del chip no seleccionado), igual que ya hace `app/kid/[id]/page.tsx` con el botón "Editar".
+Un solo valor queda como bracket: `text-[#6E6359]` (texto del chip no seleccionado), igual que ya hace `app/staff/children/[id]/page.tsx` con el botón "Editar".
 
 ## Datos
 
-No se agregan estructuras nuevas a `lib/children.ts`. El modal solo recibe el **nombre del niño** como prop (`childName`), que viene de `child.name` en `app/kid/[id]/page.tsx`.
+No se agregan estructuras nuevas a `lib/children.ts`. El modal solo recibe el **nombre del niño** como prop (`childName`), que viene de `child.name` en `app/staff/children/[id]/page.tsx`.
 
 ### `lib/invite-code.ts` (nuevo)
 
@@ -203,7 +203,7 @@ El `tracking-[7px]` agrega un espacio después del último carácter, así que e
 - Props: `{ parents: Parent[]; childName: string }`.
 - Reemplazar el `<a href="#">Vincular otro padre</a>` por `<LinkParentModal childName={childName} />`. El resto de la tarjeta no cambia.
 
-#### `app/kid/[id]/page.tsx`
+#### `app/staff/children/[id]/page.tsx`
 
 - `<LinkedParents parents={profile.parents} childName={child.name} />`.
 - El resto de la página no cambia.
@@ -215,12 +215,12 @@ El `tracking-[7px]` agrega un espacio después del último carácter, así que e
 
 ## Plan de implementación
 
-1. Agregar los tokens nuevos a `app/globals.css`. Verificación: `npm run dev` carga y `/kid/[id]` se ve igual.
+1. Agregar los tokens nuevos a `app/globals.css`. Verificación: `npm run dev` carga y `/staff/children/[id]` se ve igual.
 2. Crear `lib/invite-code.ts` con el alfabeto, la longitud y `generateInviteCode()`. Verificación: `npx tsc --noEmit` sin errores.
 3. Crear `app/_components/link-parent-modal.tsx` con trigger + overlay + tarjeta + banner + campos + chips + bloque de código + CTA. Verificación: `npx tsc --noEmit` sin errores.
-4. Agregar la accesibilidad: autofocus, Escape, trampa de foco, retorno del foco y bloqueo de scroll. Verificación: `npx tsc --noEmit` sin errores; prueba manual en `/kid/mateo-fernandez`.
+4. Agregar la accesibilidad: autofocus, Escape, trampa de foco, retorno del foco y bloqueo de scroll. Verificación: `npx tsc --noEmit` sin errores; prueba manual en `/staff/children/mateo-fernandez`.
 5. Agregar la validación de nombre y email. Verificación: `npx tsc --noEmit` sin errores; prueba manual (submit vacío, email sin `@`, email sin dominio, email válido).
-6. Cablear el componente: `linked-parents.tsx` (nueva prop `childName`) y `app/kid/[id]/page.tsx`. Verificación: `/kid/mateo-fernandez` renderiza idéntico salvo que "Vincular otro padre" ahora es `<button>`; al clickear se abre el modal.
+6. Cablear el componente: `linked-parents.tsx` (nueva prop `childName`) y `app/staff/children/[id]/page.tsx`. Verificación: `/staff/children/mateo-fernandez` renderiza idéntico salvo que "Vincular otro padre" ahora es `<button>`; al clickear se abre el modal.
 7. Verificación visual: copia temporal del mockup en `public/_mockups/`, comparación DOM/estilos 1:1 contra el mockup con Playwright (`getBoundingClientRect` + `getComputedStyle`), capturas en `.playwright-mcp/`.
 8. Verificación final: `npm run lint`, `npx tsc --noEmit` y `npm run build` sin errores.
 
@@ -228,12 +228,12 @@ El `tracking-[7px]` agrega un espacio después del último carácter, así que e
 
 Modal y disparador:
 
-- [x] En `/kid/mateo-fernandez`, el botón "Vincular otro padre" abre el modal sobre la página, con overlay `rgba(63,54,46,.45)` y el perfil visible detrás.
+- [x] En `/staff/children/mateo-fernandez`, el botón "Vincular otro padre" abre el modal sobre la página, con overlay `rgba(63,54,46,.45)` y el perfil visible detrás.
 - [x] El disparador conserva el aspecto actual: círculo 40px con borde dashed `#D8CBBA` y `+` en `#B0A290`, texto 14.5px extrabold `#C5413A`.
 - [x] El disparador es un `<button type="button">` (ya no un `<a href="#">`) y no navega a ninguna ruta.
 - [x] La tarjeta coincide 1:1 con el mockup: `max-width 480px`, radio 24px, fondo `#FBF4EC`, borde 1px `#ECE0D0`, sombra `0 20px 50px -24px rgba(63,54,46,.35)`.
 - [x] Header con "Vincular padre" (Fredoka 600, 18px, `#3F362E`), subtítulo "a {nombre del niño}" (13px, `#A89A8B`) y botón de cierre 34px (fondo `#F0E6D8`, X `#94887B`), separados por un divider 1px `#ECE0D0`.
-- [x] El texto del modal es dinámico: en `/kid/sofia-mendez` el subtítulo dice "a Sofía Méndez" y el banner "Solo verá el feed de Sofía." (no hay "Mateo" hardcodeado).
+- [x] El texto del modal es dinámico: en `/staff/children/sofia-mendez` el subtítulo dice "a Sofía Méndez" y el banner "Solo verá el feed de Sofía." (no hay "Mateo" hardcodeado).
 - [x] Banner informativo con fondo `#E3ECFB`, radio 14px, ícono info 20px `#4E72C8` y texto 13.5px `#3F5694` con el texto exacto del mockup.
 - [x] Campo "NOMBRE DEL PADRE/MADRE" con placeholder `Ej. Diego Fernández` y campo "EMAIL" (`type="email"`) con placeholder `correo@ejemplo.com`.
 - [x] Campo "PARENTESCO" con 3 chips "Mamá", "Papá" y "Tutor/a"; "Mamá" viene seleccionado por defecto con fondo `#CCD8F4`, borde `#9FB8EC` y texto `#4E72C8`; los otros dos con fondo `#FFFDF9`, borde `#ECE0D0` y texto `#6E6359`.
@@ -265,16 +265,16 @@ Validación:
 
 Arquitectura y convenciones:
 
-- [x] `app/_components/link-parent-modal.tsx` es el único archivo nuevo con `"use client"`; `linked-parents.tsx` y `app/kid/[id]/page.tsx` siguen siendo server components.
+- [x] `app/_components/link-parent-modal.tsx` es el único archivo nuevo con `"use client"`; `linked-parents.tsx` y `app/staff/children/[id]/page.tsx` siguen siendo server components.
 - [x] `lib/invite-code.ts` exporta `generateInviteCode()` y el código se genera en el handler del click, nunca durante el render (no hay mismatch de hidratación ni código en el HTML estático).
 - [x] Cero estilos inline: todo vía clases Tailwind; los tokens nuevos están en el `@theme` de `app/globals.css`.
-- [x] `app/kid/[id]/page.tsx` le pasa `childName` a `LinkedParents`, y `LinkedParents` a `LinkParentModal`.
-- [x] `/kid`, `/`, `/login` y `/activate-account` se ven y responden igual que antes del cambio.
+- [x] `app/staff/children/[id]/page.tsx` le pasa `childName` a `LinkedParents`, y `LinkedParents` a `LinkParentModal`.
+- [x] `/staff/children`, `/`, `/login` y `/activate-account` se ven y responden igual que antes del cambio.
 - [x] `npm run lint`, `npx tsc --noEmit` y `npm run build` sin errores.
 
 ## Decisiones
 
-- **Sí:** componente cliente aislado (`link-parent-modal.tsx`); `linked-parents.tsx` y `app/kid/[id]/page.tsx` siguen siendo server components. Es el mismo criterio que SPEC-04: el estado del modal obliga a que el trigger viva en el mismo árbol cliente.
+- **Sí:** componente cliente aislado (`link-parent-modal.tsx`); `linked-parents.tsx` y `app/staff/children/[id]/page.tsx` siguen siendo server components. Es el mismo criterio que SPEC-04: el estado del modal obliga a que el trigger viva en el mismo árbol cliente.
 - **Sí:** el trigger **reemplaza** al `<a href="#">` actual, en vez de agregarse un botón nuevo al lado. La fila final de "PADRES VINCULADOS" sigue siendo la última.
 - **Sí:** solo visual + validación de nombre y email. "Enviar invitación" valida y cierra, sin persistir: no hay base de datos en el proyecto (SPEC-01 a SPEC-04 son visuales).
 - **Sí:** el código de invitación se genera en el cliente al abrir el modal (5 caracteres, alfabeto sin caracteres ambiguos). Da la sensación de un código real sin inventar un backend.
@@ -290,7 +290,7 @@ Arquitectura y convenciones:
 - **No:** envío real de correo, bandeja de invitaciones, ni pantalla de activación propia (ya existe `/activate-account`, SPEC-03).
 - **No:** botón de "copiar código" al portapapeles. No está en el mockup.
 - **No:** extraer un hook compartido de modal (autofocus, Escape, trampa de foco) reutilizable por SPEC-04 y SPEC-05. SPEC-04 está implementada y verificada; refactorizarla es otra spec.
-- **No:** abrir el modal desde el badge "VINCULAR" de la lista de niños (`/kid`). Es otra pantalla y otra spec.
+- **No:** abrir el modal desde el badge "VINCULAR" de la lista de niños (`/staff/children`). Es otra pantalla y otra spec.
 
 ## Riesgos
 
@@ -310,8 +310,8 @@ Arquitectura y convenciones:
 - Envío real de correo o bandeja de invitaciones.
 - Mostrar el padre invitado en "PADRES VINCULADOS".
 - Copiar el código al portapapeles.
-- Ruta `/vincular-padre` (sigue siendo un modal sobre `/kid/[id]`).
-- Modal de vinculación desde la lista `/kid` (badge "VINCULAR").
+- Ruta `/vincular-padre` (sigue siendo un modal sobre `/staff/children/[id]`).
+- Modal de vinculación desde la lista `/staff/children` (badge "VINCULAR").
 - Feed de familia para el padre invitado (ruta inexistente).
 - Refactor de SPEC-04 para compartir el hook de modal.
 - Responsive: el diseño de referencia es desktop (mobile queda para un spec aparte).

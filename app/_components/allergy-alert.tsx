@@ -7,6 +7,7 @@ export default function AllergyAlert({ note }: { note: string }) {
           height="22"
           viewBox="0 0 24 24"
           fill="none"
+          aria-hidden="true"
           stroke="#fff"
           strokeWidth="2.2"
           strokeLinecap="round"

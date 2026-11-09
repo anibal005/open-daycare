@@ -1,4 +1,4 @@
-# SPEC-06 — Modal "Nueva publicación" sobre `/` y `/kid`
+# SPEC-06 — Modal "Nueva publicación" sobre `/` y `/staff/children`
 
 | Campo          | Valor                                                                                                 |
 | -------------- | ----------------------------------------------------------------------------------------------------- |
@@ -12,7 +12,7 @@
 
 ## Descripción
 
-Convertir `crear-publicacion.dc.html` (hoy una pantalla completa) en un **modal** que se abre al presionar **"Nueva publicación"** en `app/_components/sidebar.tsx` (visible en `/` y `/kid`) y al presionar la barra **"Compartí un momento…"** del feed `/`.
+Convertir `crear-publicacion.dc.html` (hoy una pantalla completa) en un **modal** que se abre al presionar **"Nueva publicación"** en `app/_components/sidebar.tsx` (visible en `/` y `/staff/children`) y al presionar la barra **"Compartí un momento…"** del feed `/`.
 
 El modal replica la tarjeta del mockup (ancho máximo 580px, radio 24px, fondo `#FBF4EC`, borde `#ECE0D0`, sombra `0 20px 50px -24px rgba(63,54,46,.35)`) con sus 4 bloques: **PARA**, **TIPO**, **DESCRIPCIÓN** y **FOTOS**.
 
@@ -28,7 +28,7 @@ El modal replica la tarjeta del mockup (ancho máximo 580px, radio 24px, fondo `
 - ❌ No se suben, previsualizan ni procesan imágenes.
 - ❌ No hay borradores, autosave, confirmación de descarte ni toast de confirmación.
 - ❌ No se agregan rutas (`/crear-publicacion`) ni query params (`?publicar=1`).
-- ❌ No se toca `app/kid/[id]`, `/login` ni `/activate-account`.
+- ❌ No se toca `app/staff/children/[id]`, `/login` ni `/activate-account`.
 
 ## Reglas globales
 
@@ -272,7 +272,7 @@ Estado `recipientsError: string | null` y `descriptionError: string | null`.
 - Escape cierra. Click en el overlay cierra. "Cancelar" cierra.
 - Tab cicla solo dentro de la tarjeta. La trampa se calcula en cada `keydown` con un query al `cardRef` (`button, input, textarea, select, a[href]`), descartando `disabled`, elementos sin layout y **radios no marcados**, porque el navegador expone un solo tab stop por grupo de radios. Orden real: Cancelar → Publicar → 4 checkboxes de PARA → radio marcado de TIPO → textarea (8 tab stops).
 - Al cerrar, el foco vuelve al disparador (sidebar o barra del feed, según la instancia).
-- Mientras está abierto se agrega `modal-open` a `document.body`; al cerrar o desmontar se quita. La regla `body.modal-open, body.modal-open main { overflow: hidden }` de SPEC-04 ya cubre `/` y `/kid`, donde el contenedor scrolleable es `main`.
+- Mientras está abierto se agrega `modal-open` a `document.body`; al cerrar o desmontar se quita. La regla `body.modal-open, body.modal-open main { overflow: hidden }` de SPEC-04 ya cubre `/` y `/staff/children`, donde el contenedor scrolleable es `main`.
 
 ### Modificar
 
@@ -298,12 +298,12 @@ Estado `recipientsError: string | null` y `descriptionError: string | null`.
 
 1. Extender `lib/posts.ts` (7 tipos + `POST_TYPE_ORDER` + labels + estilos de badge + `POST_TYPE_CHIP_STYLES`). Verificación: `npx tsc --noEmit` sin errores y `/` muestra los mismos 3 posts con los mismos badges.
 2. Crear `app/_components/create-post-modal.tsx` con `"use client"`, los dos disparadores y el esqueleto del diálogo (overlay + tarjeta + header con Cancelar/Publicar + form vacío). Verificación: `npx tsc --noEmit` sin errores.
-3. Cablear el disparador del sidebar. Verificación: en `/` y `/kid`, "Nueva publicación" abre y cierra el modal con Cancelar, Escape y click en el fondo.
+3. Cablear el disparador del sidebar. Verificación: en `/` y `/staff/children`, "Nueva publicación" abre y cierra el modal con Cancelar, Escape y click en el fondo.
 4. Implementar PARA: chips desde `children.slice(0, 3)`, checkboxes ocultos, selección múltiple, exclusividad de "Toda la sala" y defaults. Verificación manual de las cuatro combinaciones (marcar niño, desmarcar el último, marcar sala, desmarcar sala).
 5. Implementar TIPO: radios ocultos, 7 chips con `POST_TYPE_CHIP_STYLES`, Comida por defecto y navegación con flechas. Verificación: un solo chip sólido a la vez.
 6. Implementar DESCRIPCIÓN (textarea no controlado) y FOTOS (tiles decorativos). Verificación: el modal coincide con el mockup y el tabulador no se detiene en "Agregar".
 7. Agregar la validación de destinatarios y descripción. Verificación manual: publicar sin texto, sin destinatarios y con ambos válidos.
-8. Agregar accesibilidad: foco inicial, Escape, trampa de foco filtrada, retorno de foco y `modal-open`. Verificación en `/` y `/kid`.
+8. Agregar accesibilidad: foco inicial, Escape, trampa de foco filtrada, retorno de foco y `modal-open`. Verificación en `/` y `/staff/children`.
 9. Cablear el disparador del feed. Verificación: en `/`, la barra "Compartí un momento…" abre el mismo modal y no navega; el sidebar sigue funcionando.
 10. Verificación visual: copia temporal del mockup en `public/_mockups/`, comparación 1:1 con Playwright (`getBoundingClientRect` + `getComputedStyle`) y capturas en `.playwright-mcp/`. Cierre: `npm run lint`, `npx tsc --noEmit` y `npm run build` sin errores.
 
@@ -312,7 +312,7 @@ Estado `recipientsError: string | null` y `descriptionError: string | null`.
 Modal y disparadores:
 
 - [x] En `/`, el botón "Nueva publicación" del sidebar abre el modal sobre la página, con overlay `rgba(63,54,46,.45)` y el feed visible detrás.
-- [x] En `/kid`, el mismo botón del sidebar abre el mismo modal; no se modifica ninguna página de niños.
+- [x] En `/staff/children`, el mismo botón del sidebar abre el mismo modal; no se modifica ninguna página de niños.
 - [x] En `/`, la barra "Compartí un momento…" abre el mismo modal y no navega.
 - [x] Ambos disparadores son `<button type="button">` y conservan exactamente el aspecto previo (gradiente, íconos, márgenes `mb-[18px]` y `mb-6`).
 - [x] La tarjeta coincide 1:1 con el mockup: `max-width 580px`, radio 24px, fondo `#FBF4EC`, borde 1px `#ECE0D0`, sombra `0 20px 50px -24px rgba(63,54,46,.35)`.
@@ -366,7 +366,7 @@ Arquitectura y convenciones:
 - [x] `app/globals.css` no cambia: se reutilizan `modal-bg`, `input-line`, `error`, `error-line` y la regla `body.modal-open`.
 - [x] `PostType` tiene 7 valores y `POST_TYPE_LABELS`, `POST_TYPE_CHIP_LABELS` y `POST_TYPE_STYLES` son `Record<PostType, ...>` completos (el compilador lo exige).
 - [x] `post-card.tsx` no cambia y sigue renderizando los badges de los 3 posts actuales.
-- [x] `/`, `/kid`, `/kid/[id]`, `/login` y `/activate-account` se ven y responden igual que antes, salvo los dos disparadores convertidos en botones.
+- [x] `/`, `/staff/children`, `/staff/children/[id]`, `/login` y `/activate-account` se ven y responden igual que antes, salvo los dos disparadores convertidos en botones.
 - [x] `npm run lint`, `npx tsc --noEmit` y `npm run build` sin errores.
 
 ## Decisiones
@@ -404,7 +404,7 @@ Arquitectura y convenciones:
 | Dos instancias del modal conviven en `/`                                    | Cada una tiene su propio `isOpen` y su propio `triggerRef`; el overlay tapa la página, así que no se pueden abrir las dos. |
 | La trampa de foco incluye radios ocultos no marcados                        | El query descarta `disabled` y `input[type=radio]:not(:checked)` antes de calcular primero/último.                       |
 | El primer y el último elemento del modal están en el header                 | El query corre sobre la tarjeta completa, no solo sobre el `<form>`; incluye Cancelar y Publicar.                       |
-| Bloquear solo `body` no frena el scroll                                      | Se reutiliza `body.modal-open main { overflow: hidden }` de SPEC-04; en `/` y `/kid` el scroll vive en `main`.          |
+| Bloquear solo `body` no frena el scroll                                      | Se reutiliza `body.modal-open main { overflow: hidden }` de SPEC-04; en `/` y `/staff/children` el scroll vive en `main`.          |
 | React 19: warning de input controlado sin `onChange`                        | Los chips son controlados con `onChange` y el textarea es no controlado (`ref`, sin `value`).                            |
 | La tarjeta (≈600px) puede exceder el viewport en pantallas bajas            | El overlay es `overflow-y-auto` con `p-6`; la tarjeta scrollea dentro del overlay sin mover la página.                   |
 | El comentario de `body.modal-open` menciona solo el modal de niño           | El selector es genérico y no se duplica; el comentario se deja como está para no tocar CSS verificado.                  |

@@ -8,23 +8,26 @@ export type PostType =
   | "photo" // Foto
   | "announcement"; // Anuncio
 
-export interface PostPhoto {
-  alt: string;
-  caption: string;
+export interface FeedPostPhoto {
+  id: string;
+  url: string; // signed URL (valid for 1 hour)
+  alt: string | null;
+  width: number | null;
+  height: number | null;
 }
 
-export interface Post {
+export interface FeedPost {
   id: string;
   type: PostType;
-  childName: string; // "Mateo"
-  avatarLetter: string; // "M"
+  headerName: string; // "Thiago" | "Thiago y Celeste" | "Anuncio general" | "Toda la sala"
+  avatarLetter: string; // first letter of headerName, "" for announcements
   time: string; // "14:20"
-  authorLabel: string; // "publicado por vos"
-  audience: string; // "Para: familia de Mateo" | "Para: toda la sala"
-  text: string; // post body
+  authorLabel: string; // "publicado por vos" | "publicado por el equipo"
+  audience: string; // "Para: familia de Thiago" | "Para: toda la sala"
+  body: string;
   likes: number;
   comments: number;
-  photo?: PostPhoto; // only on "activity"
+  photos: FeedPostPhoto[]; // 0..2, ordered by position
 }
 
 // Visual order of the type chips in the "Nueva publicación" modal (mockup order).
@@ -146,46 +149,3 @@ export const POST_TYPE_STYLES: Record<
     label: "text-[#4E72C8]",
   },
 };
-
-export const posts: Post[] = [
-  {
-    id: "post-achievement-mateo",
-    type: "achievement",
-    childName: "Mateo",
-    avatarLetter: "M",
-    time: "14:20",
-    authorLabel: "publicado por vos",
-    audience: "Para: familia de Mateo",
-    text: "¡Usó el orinal solito por primera vez! Estaba feliz de contárselo a todos. Un gran paso.",
-    likes: 3,
-    comments: 1,
-  },
-  {
-    id: "post-activity-mateo",
-    type: "activity",
-    childName: "Mateo",
-    avatarLetter: "M",
-    time: "09:40",
-    authorLabel: "publicado por vos",
-    audience: "Para: familia de Mateo",
-    text: "Pintamos con témperas esta mañana. Mateo eligió el azul para todo y se concentró un montón mezclando colores.",
-    likes: 5,
-    comments: 2,
-    photo: {
-      alt: "Mateo pintando con témperas",
-      caption: "Foto · pintando con témperas",
-    },
-  },
-  {
-    id: "post-announcement-sala",
-    type: "announcement",
-    childName: "Anuncio general",
-    avatarLetter: "",
-    time: "07:50",
-    authorLabel: "publicado por vos",
-    audience: "Para: toda la sala",
-    text: "El viernes salimos al parque por la mañana. Recuerden mandar gorra y una botellita de agua.",
-    likes: 8,
-    comments: 0,
-  },
-];

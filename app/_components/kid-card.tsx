@@ -12,7 +12,7 @@ export default function KidCard({ child }: { child: Child }) {
 
   return (
     <a
-      href={`/kid/${child.id}`}
+      href={`/staff/children/${child.id}`}
       className="flex min-w-0 items-center gap-[14px] rounded-[18px] border border-line bg-card p-4 shadow-[0_4px_14px_-12px_rgba(120,90,60,.5)] transition duration-150 hover:-translate-y-0.5 hover:border-kid-hover"
     >
       <div
